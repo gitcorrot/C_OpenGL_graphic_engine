@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "mathOpengl.h"
+
 const int screen_width = 800;
 const int screen_height = 600;
 
@@ -149,11 +151,11 @@ int main(void)
 
     GLfloat vertices[] = {
         // position             // color
-        -0.5f,  0.5f, 0.0f,     0.9f, 0.0f, 0.0f,
-        -0.5f, -0.5f, 0.0f,     0.0f, 0.9f, 0.0f,
-         0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 0.9f,
-         0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 0.1f,
-         0.0f,  0.9f, 0.0f,     1.0f, 1.0f, 1.0f,
+        -0.5f,  0.5f, 0.0f,     0.9f, 0.0f, 0.0f,   // 0
+        -0.5f, -0.5f, 0.0f,     0.0f, 0.9f, 0.0f,   // 1
+         0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 0.9f,   // 2
+         0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 0.1f,   // 3
+         0.0f,  0.9f, 0.0f,     1.0f, 1.0f, 1.0f,   // 4
     };
 
     GLuint indices[] = {
@@ -186,6 +188,8 @@ int main(void)
     // Load shaders
     GLuint programID = shaderCreateFromFile("test_vs.glsl", "test_fs.glsl");
 
+    double time, previousTime = 0;
+
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
     while (
@@ -193,20 +197,30 @@ int main(void)
     {
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(0.25, 0.25, 0.2, 1);
-
-        // Use loaded shader
         glUseProgram(programID);
 
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, (void *)0); // 3 for position + 3 for color
         glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES,
+                       sizeof(indices) / sizeof(indices[0]),
+                       GL_UNSIGNED_INT,
+                       (void *)0); 
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        // Count FPS
+        time = glfwGetTime();
+        if(((int)(time*10000) % 10) == 0 )
+            fprintf(stdout, "\nFPS: %f", 1/(time - previousTime));
+        previousTime = time;
     }
 
-    glfwDestroyWindow(window);
-    glfwTerminate();
+
     printf("Exiting...\n");
+    glfwDestroyWindow(window);
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteProgram(programID);
+    glfwTerminate();
     exit(EXIT_SUCCESS);
 }
