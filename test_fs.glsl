@@ -4,6 +4,7 @@
 
     out vec4 fs_color;
 
-    void main() {
+    void main() 
+    {
         fs_color = vec4(vs_color, 1.0f);
     }

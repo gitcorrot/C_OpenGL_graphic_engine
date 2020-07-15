@@ -7,6 +7,10 @@
 // - generate projection matrix
 // - generate look at matrix
 
+#define PI      3.1415926
+#define DEG2RAD 0.0174532
+#define RAD2DEG 57.295779
+
 typedef float vec3f[3];
 typedef float vec4f[4];
 typedef float mat3f[3 * 3];
@@ -39,7 +43,8 @@ void mat4fTranslate(mat4f dest, float x, float y, float z);
 void mat4fScale(mat4f dest, float x, float y, float z); 
 
 // returns rotation matrix 4x4
-void mat4Rotate(mat4f dest, float x, float y, float z, float theta); 
+void mat4fRotate(mat4f dest, float x, float y, float z, float theta); 
 
+void mat4fPrint(mat4f this);
 
 #endif

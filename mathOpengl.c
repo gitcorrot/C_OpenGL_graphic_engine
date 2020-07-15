@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include "mathOpengl.h"
@@ -99,10 +100,10 @@ void mat4fCopy(mat4f this, mat4f m)
 
 void mat4fIdentity(mat4f this)
 {
-    this[0] = 1;    this[1] = 0;    this[2] = 0;    this[3] = 0;
-    this[4] = 0;    this[5] = 1;    this[6] = 0;    this[7] = 0;
-    this[8] = 0;    this[9] = 0;    this[10] = 1;   this[11] = 0;
-    this[12] = 0;   this[13] = 0;   this[14] = 0;   this[15] = 1;
+    this[0] = 1.0;    this[1] = 0.0;    this[2] = 0.0;    this[3] = 0.0;
+    this[4] = 0.0;    this[5] = 1.0;    this[6] = 0.0;    this[7] = 0.0;
+    this[8] = 0.0;    this[9] = 0.0;    this[10] = 1.0;   this[11] = 0.0;
+    this[12] = 0.0;   this[13] = 0.0;   this[14] = 0.0;   this[15] = 1.0;
 
     // mat4f i = {
     //     1.0,0.0,0.0,
@@ -127,19 +128,27 @@ void mat4fSubtract(mat4f this, mat4f m)
 
 void mat4fMultiply(mat4f this, mat4f m)
 {
-    mat4f tmp;
-
-    for (int i = 0; i < 4; i++)
+    mat4f tmp = 
     {
-        for (int j = 0; j < 4; j++)
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0
+    };
+    
+    int i,j,k;
+
+    for (i = 0; i < 4; i++)
+    {
+        for (j = 0; j < 4; j++)
         {
-            for (int k = 0; k < 4; k++)
+            for (k = 0; k < 4; k++)
             {
                 tmp[i * 4 + j] += this[i * 4 + k] * m[k * 4 + j];
             }
         }
     }
-
+    
     mat4fCopy(tmp, this);
 }
 
@@ -171,7 +180,7 @@ void mat4fScale(mat4f dest, float x, float y, float z)
     dest[11] *= z;
 }
 
-void mat4Rotate(mat4f dest, float x, float y, float z, float theta)
+void mat4fRotate(mat4f dest, float x, float y, float z, float theta)
 {
     mat4f tmp;
     float c = cosf(theta);
@@ -196,4 +205,18 @@ void mat4Rotate(mat4f dest, float x, float y, float z, float theta)
     tmp[15] = 1;
 
     mat4fCopy(tmp, dest);
+}
+
+
+void mat4fPrint(mat4f this)
+{
+    int i, j;
+    for (i = 0; i < 4; i++)
+    {
+        for (j = 0; j < 4; j++)
+        {
+            printf("%.3f\t", this[i * 4 + j]);
+        }
+        printf("\n");
+    }
 }

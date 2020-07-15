@@ -6,78 +6,79 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <string.h>
 
 #include "mathOpengl.h"
 
-const int screen_width = 800;
-const int screen_height = 600;
+const int screenWidth = 800;
+const int screenHeight = 800;
 
-GLuint shaderCreateFromFile(char *vertex_shader_filename, char *fragment_shader_filename)
+GLuint shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFilename)
 {
     FILE *f;
-    GLchar *vertex_shader_text_buffer;
-    GLchar *fragment_shader_text_buffer;
+    GLchar *vertexShaderTextBuffer;
+    GLchar *fragmentShaderTextBuffer;
 
     // Read vertex shader text
-    f = fopen(vertex_shader_filename, "r");
+    f = fopen(vertexShaderFilename, "r");
     if (f == NULL)
     {
-        fprintf(stderr, "Can't open '%s'", vertex_shader_filename);
+        fprintf(stderr, "Can't open '%s'", vertexShaderFilename);
         exit(EXIT_FAILURE);
     }
     fseek(f, 0, SEEK_END);
-    long text_length = ftell(f);
-    vertex_shader_text_buffer = malloc(sizeof(char) * text_length + 1);
+    long textLength = ftell(f);
+    vertexShaderTextBuffer = malloc(sizeof(char) * textLength + 1);
     fseek(f, 0, SEEK_SET);
-    fread(vertex_shader_text_buffer, 1, text_length, f);
-    vertex_shader_text_buffer[text_length] = '\0';
-    const GLchar *vertex_shader_text = vertex_shader_text_buffer;
+    fread(vertexShaderTextBuffer, 1, textLength, f);
+    vertexShaderTextBuffer[textLength] = '\0';
+    const GLchar *vertexShaderText = vertexShaderTextBuffer;
     fclose(f);
 
     // Read fragment shader text
-    f = fopen(fragment_shader_filename, "r");
+    f = fopen(fragmentShaderFilename, "r");
     if (f == NULL)
     {
-        fprintf(stderr, "Can't open '%s'", fragment_shader_filename);
+        fprintf(stderr, "Can't open '%s'", fragmentShaderFilename);
         exit(EXIT_FAILURE);
     }
     fseek(f, 0, SEEK_END);
-    text_length = ftell(f);
-    fragment_shader_text_buffer = malloc(sizeof(char) * text_length + 1);
+    textLength = ftell(f);
+    fragmentShaderTextBuffer = malloc(sizeof(char) * textLength + 1);
     fseek(f, 0, SEEK_SET);
-    fread(fragment_shader_text_buffer, 1, text_length, f);
-    fragment_shader_text_buffer[text_length] = '\0';
-    const GLchar *fragment_shader_text = fragment_shader_text_buffer;
+    fread(fragmentShaderTextBuffer, 1, textLength, f);
+    fragmentShaderTextBuffer[textLength] = '\0';
+    const GLchar *fragmentShaderText = fragmentShaderTextBuffer;
     fclose(f);
 
-    char info_log_buffer[512];
+    char infoLogBuffer[512];
     int success;
 
     // Create vertex shader
     GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(VertexShaderID, 1, &vertex_shader_text, NULL);
+    glShaderSource(VertexShaderID, 1, &vertexShaderText, NULL);
     glCompileShader(VertexShaderID);
     glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &success);
     if (!success)
     {
-        glGetShaderInfoLog(VertexShaderID, 512, NULL, info_log_buffer);
+        glGetShaderInfoLog(VertexShaderID, 512, NULL, infoLogBuffer);
         fprintf(stderr,
                 "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s",
-                info_log_buffer);
+                infoLogBuffer);
     };
 
     // Create fragment shader
     GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(FragmentShaderID, 1, &fragment_shader_text, NULL);
+    glShaderSource(FragmentShaderID, 1, &fragmentShaderText, NULL);
     glCompileShader(FragmentShaderID);
     glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &success);
     if (!success)
     {
-        glGetShaderInfoLog(FragmentShaderID, 512, NULL, info_log_buffer);
+        glGetShaderInfoLog(FragmentShaderID, 512, NULL, infoLogBuffer);
         fprintf(stderr,
                 "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n%s",
-                info_log_buffer);
+                infoLogBuffer);
     };
 
     // Attach and link shaders to program
@@ -88,18 +89,18 @@ GLuint shaderCreateFromFile(char *vertex_shader_filename, char *fragment_shader_
     glGetProgramiv(p, GL_LINK_STATUS, &success);
     if (!success)
     {
-        glGetProgramInfoLog(p, 512, NULL, info_log_buffer);
+        glGetProgramInfoLog(p, 512, NULL, infoLogBuffer);
         fprintf(stderr,
                 "ERROR::ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s",
-                info_log_buffer);
+                infoLogBuffer);
     }
 
     // Clean up
     glDeleteShader(VertexShaderID);
     glDeleteShader(FragmentShaderID);
 
-    free(vertex_shader_text_buffer);
-    free(fragment_shader_text_buffer);
+    free(vertexShaderTextBuffer);
+    free(fragmentShaderTextBuffer);
 
     return p;
 }
@@ -118,7 +119,7 @@ int main(void)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(screen_width, screen_height, "OpenGL test", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL test", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -149,22 +150,29 @@ int main(void)
 
     printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-    GLfloat vertices[] = {
-        // position             // color
-        -0.5f,  0.5f, 0.0f,     0.9f, 0.0f, 0.0f,   // 0
-        -0.5f, -0.5f, 0.0f,     0.0f, 0.9f, 0.0f,   // 1
-         0.5f, -0.5f, 0.0f,     0.0f, 0.0f, 0.9f,   // 2
-         0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 0.1f,   // 3
-         0.0f,  0.9f, 0.0f,     1.0f, 1.0f, 1.0f,   // 4
-    };
 
     GLuint indices[] = {
          0, 1, 2,
-         2, 0, 3,
-         0, 3, 4
+         2, 0, 3
     };
 
-    GLuint VBO, VAO, EBO; // EBO - element array buffer
+    vec3f vertices[] = 
+    {
+        // position             // color
+        {-0.3f,  0.3f, 0.0f},   {0.9f, 0.0f, 0.0f },   // 0
+        {-0.3f, -0.3f, 0.0f},   {0.0f, 0.9f, 0.0f },   // 1
+        { 0.3f, -0.3f, 0.0f},   {0.0f, 0.0f, 0.9f },   // 2
+        { 0.3f,  0.3f, 0.0f},   {1.0f, 1.0f, 1.0f },   // 3
+    };
+
+    // vec3f indices[] = 
+    // {
+    //     {0, 1, 2},
+    //     {2, 0, 3},
+    //     {0, 3, 4}
+    // };
+
+    GLuint VBO, VAO, EBO;
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -188,9 +196,16 @@ int main(void)
     // Load shaders
     GLuint programID = shaderCreateFromFile("test_vs.glsl", "test_fs.glsl");
 
-    double time, previousTime = 0;
+    // double time, previousTime = 0;
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+
+    int count = 0;
+    float angle = 0.0;
+    
+    mat4f translation, rotation;
+    mat4fIdentity(translation);
+    mat4fIdentity(rotation);
 
     while (
         glfwGetKey(window, GLFW_KEY_Q) != GLFW_PRESS && glfwWindowShouldClose(window) == 0)
@@ -200,21 +215,30 @@ int main(void)
         glUseProgram(programID);
 
         glBindVertexArray(VAO);
+
+        //      Model transformation    //
+        angle = (count++ % 360) * DEG2RAD;
+        mat4fTranslate(translation, cosf(angle) / 2, sinf(angle) / 2, 0.0);
+        mat4fRotate(rotation, 0, 0, 1, angle * 2);
+        mat4fMultiply(translation, rotation);
+        GLint uniTrans = glGetUniformLocation(programID, "model");
+        glUniformMatrix4fv(uniTrans, 1, GL_TRUE, translation);
+        // end of Model transformation  //
+
         glDrawElements(GL_TRIANGLES,
                        sizeof(indices) / sizeof(indices[0]),
                        GL_UNSIGNED_INT,
-                       (void *)0); 
+                       (void *)0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
 
         // Count FPS
-        time = glfwGetTime();
-        if(((int)(time*10000) % 10) == 0 )
-            fprintf(stdout, "\nFPS: %f", 1/(time - previousTime));
-        previousTime = time;
+        // time = glfwGetTime();
+        // if(((int)(time*100000) % 10) == 0 )
+        //     fprintf(stdout, "FPS: %.1f\n", 1/(time - previousTime));
+        // previousTime = time;
     }
-
 
     printf("Exiting...\n");
     glfwDestroyWindow(window);

@@ -5,9 +5,11 @@
 
     out vec3 vs_color;
 
-    void main() {
-        gl_Position.xyz = Position;
-        gl_Position.w = 1.0;
+    uniform mat4 model;
+
+    void main() 
+    {
+        gl_Position = model * vec4(Position, 1.0);
 
         vs_color = Color;
     }
