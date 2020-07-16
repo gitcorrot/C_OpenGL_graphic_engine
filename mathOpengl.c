@@ -182,6 +182,7 @@ void mat4fScale(mat4f dest, float x, float y, float z)
 
 void mat4fRotate(mat4f dest, float x, float y, float z, float theta)
 {
+    // TODO: tmp is not neccesary?
     mat4f tmp;
     float c = cosf(theta);
     float s = sinf(theta);
@@ -207,6 +208,28 @@ void mat4fRotate(mat4f dest, float x, float y, float z, float theta)
     mat4fCopy(tmp, dest);
 }
 
+void mat4fPerspective(mat4f dest, float fov, float aspectRatio, float near, float far)
+{
+    float d = 1 / tanf((fov*DEG2RAD)/2);
+
+    // https://en.wikibooks.org/wiki/GLSL_Programming/Vertex_Transformations
+    dest[0] = d / aspectRatio;
+    dest[1] = 0;
+    dest[2] = 0;
+    dest[3] = 0;
+    dest[4] = 0;
+    dest[5] = d;
+    dest[6] = 0;
+    dest[7] = 0;
+    dest[8] = 0;
+    dest[9] = 0;
+    dest[10] = (near + far) / (near - far);
+    dest[11] = (2 * near * far) / (near - far);
+    dest[12] = 0;
+    dest[13] = 0;
+    dest[14] = -1;
+    dest[15] = 0;
+}
 
 void mat4fPrint(mat4f this)
 {

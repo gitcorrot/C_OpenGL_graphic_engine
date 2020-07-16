@@ -45,6 +45,9 @@ void mat4fScale(mat4f dest, float x, float y, float z);
 // returns rotation matrix 4x4
 void mat4fRotate(mat4f dest, float x, float y, float z, float theta); 
 
+// returns perspective matrix 4x4 (fov in deegres)
+void mat4fPerspective(mat4f dest, float fov, float aspectRatio, float near, float far); 
+
 void mat4fPrint(mat4f this);
 
 #endif

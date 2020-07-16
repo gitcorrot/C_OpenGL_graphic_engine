@@ -11,8 +11,8 @@
 
 #include "mathOpengl.h"
 
-const int screenWidth = 800;
-const int screenHeight = 800;
+const int screenWidth = 1000;
+const int screenHeight =1000;
 
 GLuint shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFilename)
 {
@@ -114,7 +114,6 @@ int main(void)
     }
 
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-    
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -150,21 +149,46 @@ int main(void)
 
     printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 
+    glViewport(0,0,screenWidth, screenHeight);
+    glEnable(GL_DEPTH_TEST);
+
 
     GLuint indices[] = {
-         0, 1, 2,
-         2, 0, 3
+        // front
+        2, 1, 0,
+        0, 3, 2,
+        // back
+        6, 5, 4,
+        4, 7, 6,
+        // left 
+        1, 5, 4,
+        4, 0, 1,
+        // right
+        6, 2, 3,
+        3, 7, 6,
+        // top
+        3, 0, 4,
+        4, 7, 3, 
+        // bottom
+        2, 1, 5,
+        5, 6, 2
     };
 
     vec3f vertices[] = 
     {
         // position             // color
-        {-0.3f,  0.3f, 0.0f},   {0.9f, 0.0f, 0.0f },   // 0
-        {-0.3f, -0.3f, 0.0f},   {0.0f, 0.9f, 0.0f },   // 1
-        { 0.3f, -0.3f, 0.0f},   {0.0f, 0.0f, 0.9f },   // 2
-        { 0.3f,  0.3f, 0.0f},   {1.0f, 1.0f, 1.0f },   // 3
+        {-0.5f,  0.5f, 0.5f},   {0.9f, 0.0f, 0.0f },   // 0
+        {-0.5f, -0.5f, 0.5f},   {0.0f, 0.9f, 0.0f },   // 1
+        { 0.5f, -0.5f, 0.5f},   {0.0f, 1.0f, 0.9f },   // 2
+        { 0.5f,  0.5f, 0.5f},   {1.0f, 1.0f, 1.0f },   // 3
+        
+        {-0.5f,  0.5f, -0.5f},   {0.9f, 0.5f, 0.0f },   // 4
+        {-0.5f, -0.5f, -0.5f},   {0.0f, 0.9f, 1.0f },   // 5
+        { 0.5f, -0.5f, -0.5f},   {0.7f, 0.0f, 0.9f },   // 6
+        { 0.5f,  0.5f, -0.5f},   {1.0f, 1.0f, 1.0f },   // 7
     };
 
+    // TODO: implement vec3i (integer)
     // vec3f indices[] = 
     // {
     //     {0, 1, 2},
@@ -207,22 +231,34 @@ int main(void)
     mat4fIdentity(translation);
     mat4fIdentity(rotation);
 
+    mat4f view;
+    mat4fIdentity(view);
+    mat4fTranslate(view, 0.0, 0.0, -2.0);
+
+    mat4f perspective;
+    mat4fPerspective(perspective, 45.0, screenWidth/screenHeight, 0.1, 100.0);
     while (
         glfwGetKey(window, GLFW_KEY_Q) != GLFW_PRESS && glfwWindowShouldClose(window) == 0)
     {
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.25, 0.25, 0.2, 1);
         glUseProgram(programID);
 
         glBindVertexArray(VAO);
-
         //      Model transformation    //
-        angle = (count++ % 360) * DEG2RAD;
-        mat4fTranslate(translation, cosf(angle) / 2, sinf(angle) / 2, 0.0);
-        mat4fRotate(rotation, 0, 0, 1, angle * 2);
+        angle = (1+(count++ % 360)) * DEG2RAD;
+        // mat4fTranslate(translation, cosf(angle) / 5, sinf(angle) / 5, 0.0);
+        mat4fPrint(translation);
+        mat4fRotate(rotation, 0.0, 1.0, 0.0, 90/60.0*DEG2RAD);
         mat4fMultiply(translation, rotation);
-        GLint uniTrans = glGetUniformLocation(programID, "model");
-        glUniformMatrix4fv(uniTrans, 1, GL_TRUE, translation);
+        GLint uniModel = glGetUniformLocation(programID, "model");
+        glUniformMatrix4fv(uniModel, 1, GL_TRUE, translation);
+
+        GLint uniView = glGetUniformLocation(programID, "view");
+        glUniformMatrix4fv(uniView, 1, GL_TRUE, view);
+
+        GLint uniProj = glGetUniformLocation(programID, "projection");
+        glUniformMatrix4fv(uniProj, 1, GL_TRUE, perspective);
         // end of Model transformation  //
 
         glDrawElements(GL_TRIANGLES,
