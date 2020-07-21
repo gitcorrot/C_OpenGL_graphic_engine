@@ -1,3 +1,16 @@
+    // TODO:
+    // create input library:
+    //  - in keyCallback() function only sets flags
+    //  - update() function that checks flags and do what is needed (or updateMouseInput(), updateKeyboardInput())
+    // or:
+    //  - make class (OOB in C) InputManager and place the functions there
+    // or:
+    //  - only use glfwGetKey(window,key)
+
+    // crate Camera class/library
+    //  - s
+
+
 #define GL3W_IMPLEMENTATION
 #include "GL/gl3w.h" // https://github.com/gingerBill/gl3w-Single-File
 
@@ -11,8 +24,16 @@
 
 #include "mathOpengl.h"
 
-const int screenWidth = 1000;
-const int screenHeight =1000;
+const uint16_t screenWidth = 1000;
+const uint16_t screenHeight = 1000;
+
+float cameraX = 0.0;
+float cameraY = 0.0;
+float cameraZ = -3.0;
+
+double lastX, lastY, lastScroll;
+
+double lastMillisTime, deltaTime;
 
 GLuint shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFilename)
 {
@@ -105,6 +126,82 @@ GLuint shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFile
     return p;
 }
 
+void mouseCallback(GLFWwindow* window, double xPos, double yPos)
+{
+    if (lastX == 0 && lastY == 0)
+    {
+        lastX = xPos;
+        lastY = yPos;
+        return;
+    }
+
+    if (lastX < xPos)
+    {
+        // mouse moved to the right
+    }
+    else if (lastX > xPos)
+    {
+        // mouse moved to the left
+    }
+
+    if (lastY < yPos)
+    {
+        // mouse moved to the top
+    }
+    else if (lastY > yPos)
+    {
+        // mouse moved to the bottom
+    }
+
+    lastX = xPos;
+    lastY = yPos;
+}
+
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    if (lastScroll < yoffset)
+    {
+        cameraZ += 0.5;
+    }
+    else if (lastScroll > yoffset)
+    {
+        cameraZ -= 0.5;
+    }   
+}
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    // Q
+    if (key == GLFW_KEY_Q && action == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, GL_TRUE);
+    }
+
+    // W
+    if (key == GLFW_KEY_W && action == GLFW_PRESS)
+    {
+        cameraY -= 0.05;
+    }
+    // S
+    if (key == GLFW_KEY_S && action == GLFW_PRESS)
+    {
+        cameraY += 0.05;
+    }
+    // A
+    if (key == GLFW_KEY_A && action == GLFW_PRESS)
+    {
+        cameraX += 0.05;
+    }
+    // D
+    if (key == GLFW_KEY_D && action == GLFW_PRESS)
+    {
+        cameraX -= 0.05;
+    }
+
+
+}
+
+
 int main(void)
 {
     if (!glfwInit())
@@ -149,9 +246,15 @@ int main(void)
 
     printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-    glViewport(0,0,screenWidth, screenHeight);
-    glEnable(GL_DEPTH_TEST);
+    // Input configuration
+    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouseCallback);
+    glfwSetKeyCallback(window, keyCallback);
+    glfwSetScrollCallback(window, scrollCallback);
 
+    glViewport(0, 0, screenWidth, screenHeight);
+    glEnable(GL_DEPTH_TEST);
 
     GLuint indices[] = {
         // front
@@ -210,70 +313,82 @@ int main(void)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    // Positions
+    // Positions (first 3)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)0);
     glEnableVertexAttribArray(0);
-    // Colors
+    // Colors (second 3)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
 
     // Load shaders
     GLuint programID = shaderCreateFromFile("test_vs.glsl", "test_fs.glsl");
 
-    // double time, previousTime = 0;
+    vec3f modelsPositions[4] = 
+    {
+        {-1.5,  1.5, -2.0},
+        { 1.5, -1.5, -4.0},
+        { 0.0,  0.0, -6.0},
+        { 2.5,  2.5, -8.0}
+    };
 
-    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-
-    int count = 0;
-    float angle = 0.0;
-    
+    // Model matrix
     mat4f translation, rotation;
-    mat4fIdentity(translation);
-    mat4fIdentity(rotation);
 
+    // View matrix
     mat4f view;
-    mat4fIdentity(view);
-    mat4fTranslate(view, 0.0, 0.0, -2.0);
 
+    // Projection matrix
     mat4f perspective;
-    mat4fPerspective(perspective, 45.0, screenWidth/screenHeight, 0.1, 100.0);
-    while (
-        glfwGetKey(window, GLFW_KEY_Q) != GLFW_PRESS && glfwWindowShouldClose(window) == 0)
+    mat4fPerspective(perspective, 45.0, screenWidth / screenHeight, 0.1, 100.0);
+
+    // Setup time
+    lastMillisTime = glfwGetTime() * 1000.0;
+    deltaTime = lastMillisTime;
+
+    while (glfwWindowShouldClose(window) == 0)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.25, 0.25, 0.2, 1);
+
         glUseProgram(programID);
 
-        glBindVertexArray(VAO);
-        //      Model transformation    //
-        angle = (1+(count++ % 360)) * DEG2RAD;
-        // mat4fTranslate(translation, cosf(angle) / 5, sinf(angle) / 5, 0.0);
-        mat4fPrint(translation);
-        mat4fRotate(rotation, 0.0, 1.0, 0.0, 90/60.0*DEG2RAD);
-        mat4fMultiply(translation, rotation);
-        GLint uniModel = glGetUniformLocation(programID, "model");
-        glUniformMatrix4fv(uniModel, 1, GL_TRUE, translation);
+        uint8_t modelsCount = sizeof(modelsPositions)/sizeof(modelsPositions[0]);
+        for (int i = 0; i < modelsCount; i++) 
+        {
+            
+            mat4fTranslate(translation,
+                           modelsPositions[i][0],
+                           modelsPositions[i][1],
+                           modelsPositions[i][2]);
+            mat4fRotate(rotation, 0, 1, 0, i*20);
+            mat4fMultiply(translation, rotation);
 
+            GLint uniModel = glGetUniformLocation(programID, "model");
+            glUniformMatrix4fv(uniModel, 1, GL_TRUE, translation);
+
+            glDrawElements(GL_TRIANGLES,
+                           sizeof(indices) / sizeof(indices[0]),
+                           GL_UNSIGNED_INT,
+                           (void *)0);
+        }
+        // end of Model transformation  //
+
+
+        mat4fTranslate(view, cameraX, cameraY, cameraZ);
         GLint uniView = glGetUniformLocation(programID, "view");
         glUniformMatrix4fv(uniView, 1, GL_TRUE, view);
 
         GLint uniProj = glGetUniformLocation(programID, "projection");
         glUniformMatrix4fv(uniProj, 1, GL_TRUE, perspective);
-        // end of Model transformation  //
-
-        glDrawElements(GL_TRIANGLES,
-                       sizeof(indices) / sizeof(indices[0]),
-                       GL_UNSIGNED_INT,
-                       (void *)0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        // Count FPS
-        // time = glfwGetTime();
-        // if(((int)(time*100000) % 10) == 0 )
-        //     fprintf(stdout, "FPS: %.1f\n", 1/(time - previousTime));
-        // previousTime = time;
+        // Update delta time
+        double tempTime = glfwGetTime() * 1000.0;
+        deltaTime = tempTime - lastMillisTime;
+        lastMillisTime = tempTime;
+        printf("dt = %f\n", deltaTime);
     }
 
     printf("Exiting...\n");
@@ -282,5 +397,6 @@ int main(void)
     glDeleteBuffers(1, &VBO);
     glDeleteProgram(programID);
     glfwTerminate();
+
     exit(EXIT_SUCCESS);
 }
