@@ -24,12 +24,12 @@
 
 #include "mathOpengl.h"
 
-const uint16_t screenWidth = 1000;
-const uint16_t screenHeight = 1000;
+const float screenWidth = 1200.0;
+const float screenHeight = 800.0;
 
 float cameraX = 0.0;
 float cameraY = 0.0;
-float cameraZ = -3.0;
+float cameraZ = -5.0;
 
 double lastX, lastY, lastScroll;
 
@@ -309,16 +309,15 @@ int main(void)
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
     // Positions (first 3)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)0);
     glEnableVertexAttribArray(0);
     // Colors (second 3)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // Load shaders
     GLuint programID = shaderCreateFromFile("test_vs.glsl", "test_fs.glsl");
@@ -348,19 +347,23 @@ int main(void)
     while (glfwWindowShouldClose(window) == 0)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(0.25, 0.25, 0.2, 1);
+        glClearColor(0.1, 0.1, 0.15, 1);
 
         glUseProgram(programID);
 
         uint8_t modelsCount = sizeof(modelsPositions)/sizeof(modelsPositions[0]);
         for (int i = 0; i < modelsCount; i++) 
         {
-            
+
             mat4fTranslate(translation,
                            modelsPositions[i][0],
                            modelsPositions[i][1],
                            modelsPositions[i][2]);
-            mat4fRotate(rotation, 0, 1, 0, i*20);
+            if (i % 2 == 0)
+                mat4fRotate(rotation, 1, 0, 0, i * 50.0 + (lastMillisTime * DEG2RAD / 5.0));
+            else
+                mat4fRotate(rotation, 0, 1, 0, i * 50.0 + (lastMillisTime * DEG2RAD / 5.0));
+
             mat4fMultiply(translation, rotation);
 
             GLint uniModel = glGetUniformLocation(programID, "model");
@@ -371,8 +374,6 @@ int main(void)
                            GL_UNSIGNED_INT,
                            (void *)0);
         }
-        // end of Model transformation  //
-
 
         mat4fTranslate(view, cameraX, cameraY, cameraZ);
         GLint uniView = glGetUniformLocation(programID, "view");
