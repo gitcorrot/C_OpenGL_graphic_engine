@@ -29,7 +29,7 @@ const float screenHeight = 800.0;
 
 float cameraX = 0.0;
 float cameraY = 0.0;
-float cameraZ = -5.0;
+float cameraZ = 5.0;
 
 double lastX, lastY, lastScroll;
 
@@ -256,7 +256,32 @@ int main(void)
     glViewport(0, 0, screenWidth, screenHeight);
     glEnable(GL_DEPTH_TEST);
 
-    GLuint indices[] = {
+    vec3f vertices[] = 
+    {
+        // position             // color
+        {-0.5f,  0.5f, 0.5f},   {0.9f, 0.0f, 0.0f },   // 0
+        {-0.5f, -0.5f, 0.5f},   {0.0f, 0.9f, 0.0f },   // 1
+        { 0.5f, -0.5f, 0.5f},   {0.0f, 1.0f, 0.9f },   // 2
+        { 0.5f,  0.5f, 0.5f},   {1.0f, 1.0f, 1.0f },   // 3
+        
+        {-0.5f,  0.5f, -0.5f},   {0.9f, 0.5f, 0.0f },   // 4
+        {-0.5f, -0.5f, -0.5f},   {0.0f, 0.9f, 1.0f },   // 5
+        { 0.5f, -0.5f, -0.5f},   {0.7f, 0.0f, 0.9f },   // 6
+        { 0.5f,  0.5f, -0.5f},   {1.0f, 1.0f, 1.0f },   // 7
+    };
+
+    vec3f axisVertices[] = 
+    {
+        // axis
+        { 0.0f,  0.0f,  0.0f },  {1.0f, 1.0f, 1.0f },  // 8
+        { 0.1f,  0.1f,  0.0f },  {1.0f, 1.0f, 1.0f },  // 9
+        { 10.0f, 0.0f,  0.0f },  {1.0f, 0.0f, 0.0f },  // x axis // 10
+        { 0.0f,  10.0f, 0.0f },  {0.0f, 1.0f, 0.0f },  // y axis // 11
+        { 0.0f,  0.0f,  10.0f},  {0.0f, 0.0f, 1.0f },  // z axis // 12
+    };
+
+    GLuint indices[] = 
+    {
         // front
         2, 1, 0,
         0, 3, 2,
@@ -277,36 +302,23 @@ int main(void)
         5, 6, 2
     };
 
-    vec3f vertices[] = 
+    GLuint axisIndices[] = 
     {
-        // position             // color
-        {-0.5f,  0.5f, 0.5f},   {0.9f, 0.0f, 0.0f },   // 0
-        {-0.5f, -0.5f, 0.5f},   {0.0f, 0.9f, 0.0f },   // 1
-        { 0.5f, -0.5f, 0.5f},   {0.0f, 1.0f, 0.9f },   // 2
-        { 0.5f,  0.5f, 0.5f},   {1.0f, 1.0f, 1.0f },   // 3
-        
-        {-0.5f,  0.5f, -0.5f},   {0.9f, 0.5f, 0.0f },   // 4
-        {-0.5f, -0.5f, -0.5f},   {0.0f, 0.9f, 1.0f },   // 5
-        { 0.5f, -0.5f, -0.5f},   {0.7f, 0.0f, 0.9f },   // 6
-        { 0.5f,  0.5f, -0.5f},   {1.0f, 1.0f, 1.0f },   // 7
+        0, 2, 1, // axis x
+        0, 3, 1, // axis y
+        0, 4, 1  // axis z
     };
 
-    // TODO: implement vec3i (integer)
-    // vec3f indices[] = 
-    // {
-    //     {0, 1, 2},
-    //     {2, 0, 3},
-    //     {0, 3, 4}
-    // };
-
-    GLuint VBO, VAO, EBO;
+    GLuint VAO, axisVAO, VBO, axisVBO, EBO, axisEBO;
 
     glGenVertexArrays(1, &VAO);
+    glGenVertexArrays(1, &axisVAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &axisVBO);
     glGenBuffers(1, &EBO);
+    glGenBuffers(1, &axisEBO);
 
     glBindVertexArray(VAO);
-
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     // Positions (first 3)
@@ -315,25 +327,39 @@ int main(void)
     // Colors (second 3)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+
+    glBindVertexArray(axisVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(axisVertices), axisVertices, GL_STATIC_DRAW);
+    // Positions (first 3)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)0);
+    glEnableVertexAttribArray(0);
+    // Colors (second 3)
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, axisEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(axisIndices), axisIndices, GL_STATIC_DRAW);
 
     // Load shaders
     GLuint programID = shaderCreateFromFile("test_vs.glsl", "test_fs.glsl");
 
-    vec3f modelsPositions[4] = 
+    vec3f modelsPositions[] = 
     {
-        {-1.5,  1.5, -2.0},
-        { 1.5, -1.5, -4.0},
-        { 0.0,  0.0, -6.0},
-        { 2.5,  2.5, -8.0}
+        {-1.5,  3.5, -2.0},
+        { 1.5,  2.5, -4.0},
+        { 0.0,  1.0, -6.0},
+        { 2.5,  2.0, -8.0}
     };
 
     // Model matrix
     mat4f translation, rotation;
 
     // View matrix
+    vec3f cameraPosition = { 0.0, 0.0, 3.0 };
+    vec3f cameraTarget = { 0.0, 0.0, 0.0 };
     mat4f view;
 
     // Projection matrix
@@ -350,9 +376,9 @@ int main(void)
         glClearColor(0.1, 0.1, 0.15, 1);
 
         glUseProgram(programID);
+        glBindVertexArray(VAO);
 
-        uint8_t modelsCount = sizeof(modelsPositions)/sizeof(modelsPositions[0]);
-        for (int i = 0; i < modelsCount; i++) 
+        for (int i = 0; i < 4; i++) 
         {
 
             mat4fTranslate(translation,
@@ -375,7 +401,22 @@ int main(void)
                            (void *)0);
         }
 
-        mat4fTranslate(view, cameraX, cameraY, cameraZ);
+        glBindVertexArray(axisVAO);
+        mat4fIdentity(translation);
+        GLint uniModel = glGetUniformLocation(programID, "model");
+        glUniformMatrix4fv(uniModel, 1, GL_TRUE, translation);
+
+        glDrawElements(GL_TRIANGLES,
+                       sizeof(axisIndices) / sizeof(axisIndices[0]),
+                       GL_UNSIGNED_INT,
+                       (void *)0);
+
+        float camX = sin(glfwGetTime()) * 20.0;
+        float camZ = cos(glfwGetTime()) * 20.0;
+        cameraPosition[0] = camX;
+        cameraPosition[1] = 10.0;
+        cameraPosition[2] = camZ;
+        mat4fLookAt(view, cameraPosition, cameraTarget);
         GLint uniView = glGetUniformLocation(programID, "view");
         glUniformMatrix4fv(uniView, 1, GL_TRUE, view);
 
@@ -389,7 +430,7 @@ int main(void)
         double tempTime = glfwGetTime() * 1000.0;
         deltaTime = tempTime - lastMillisTime;
         lastMillisTime = tempTime;
-        printf("dt = %f\n", deltaTime);
+        // printf("dt = %f\n", deltaTime);
     }
 
     printf("Exiting...\n");

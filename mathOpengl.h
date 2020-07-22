@@ -18,18 +18,22 @@ typedef float mat4f[4 * 4];
 
 void vec3fAdd(vec3f this, vec3f v);
 void vec3fSubtract(vec3f this, vec3f v);
-void vec3fMultiply(vec3f this, vec3f v); // dot product
+float vec3fDotProduct(vec3f this, vec3f v);
+void vec3fCrossProduct(vec3f result, vec3f v1, vec3f v2);
+float vec3fLength(vec3f this);
+void vec3fNormalize(vec3f this);
+void vec3fCopy(vec3f this, vec3f v); // from "this" to "v"
 
 void vec4fAdd(vec4f this, vec4f v);
 void vec4fSubtract(vec4f this, vec4f v);
-void vec4fMultiply(vec4f this, vec4f v); // dot product
+float vec4fDotProduct(vec4f this, vec4f v);
 
-void mat3fCopy(mat3f this, mat3f m); // from "this" to "v"
+void mat3fCopy(mat3f this, mat3f m); // from "this" to "m"
 void mat3fAdd(mat3f this, mat3f m);
 void mat3fSubtract(mat3f this, mat3f m);
 void mat3fMultiply(mat3f this, mat3f m);
 
-void mat4fCopy(mat4f this, mat4f m); // from "this" to "v"
+void mat4fCopy(mat4f this, mat4f m); // from "this" to "m"
 void mat4fIdentity(mat4f this);
 void mat4fAdd(mat4f this, mat4f m);
 void mat4fSubtract(mat4f this, mat4f m);
@@ -46,7 +50,9 @@ void mat4fScale(mat4f dest, float x, float y, float z);
 void mat4fRotate(mat4f dest, float x, float y, float z, float theta); 
 
 // returns perspective matrix 4x4 (fov in deegres)
-void mat4fPerspective(mat4f dest, float fov, float aspectRatio, float near, float far); 
+void mat4fPerspective(mat4f dest, float fov, float aspectRatio, float near, float far);
+
+void mat4fLookAt(mat4f dest, vec3f cameraPosition, vec3f cameraTarget);
 
 void mat4fPrint(mat4f this);
 

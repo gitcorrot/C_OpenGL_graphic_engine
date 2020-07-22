@@ -5,12 +5,6 @@
 #include "mathOpengl.h"
 
 /*      vec3f        */
-void vec3fCopy(vec3f this, vec3f v)
-{
-    for (int i = 0; i < 3; i++)
-        v[i] = this[i];
-}
-
 void vec3fAdd(vec3f this, vec3f v)
 {
     for (int i = 0; i < 3; i++)
@@ -23,11 +17,42 @@ void vec3fSubtract(vec3f this, vec3f v)
         this[i] -= v[i];
 }
 
-void vec3fMultiply(vec3f this, vec3f v)
+float vec3fDotProduct(vec3f this, vec3f v) // dot product
+{
+    float sum = 0.0;
+
+    for (int i = 0; i < 3; i++)
+        sum += this[i] * v[i];
+
+    return sum;
+}
+
+void vec3fCrossProduct(vec3f result, vec3f v1, vec3f v2)
+{
+    result[0] = v1[1] * v2[2] - v1[2] * v2[1];
+    result[1] = v1[2] * v2[0] - v1[0] * v2[2];
+    result[2] = v1[0] * v2[1] - v1[1] * v2[0];
+}
+
+float vec3fLength(vec3f this)
+{
+    return sqrtf(this[0]*this[0] + this[1]*this[1] + this[2]*this[2]);
+}
+
+void vec3fCopy(vec3f this, vec3f v) // from "this" to "v"
 {
     for (int i = 0; i < 3; i++)
-        this[i] *= v[i];
+        v[i] = this[i];
 }
+
+void vec3fNormalize(vec3f this)
+{
+    float length = vec3fLength(this);
+    this[0] = this[0] / length;
+    this[1] = this[1] / length;
+    this[2] = this[2] / length;
+}
+
 
 /*      vec4f        */
 void vec4fCopy(vec4f this, vec4f v)
@@ -48,10 +73,14 @@ void vec4fSubtract(vec4f this, vec4f v)
         this[i] -= v[i];
 }
 
-void vec4fMultiply(vec4f this, vec4f v)
+float vec4fDotProduct(vec4f this, vec4f v)
 {
+    float sum = 0.0;
+
     for (int i = 0; i < 4; i++)
-        this[i] *= v[i];
+        sum += this[i] * v[i];
+
+    return sum;
 }
 
 /*      mat3f       */
@@ -229,6 +258,42 @@ void mat4fPerspective(mat4f dest, float fov, float aspectRatio, float near, floa
     dest[13] = 0;
     dest[14] = -1;
     dest[15] = 0;
+}
+
+void mat4fLookAt(mat4f dest, vec3f cameraPosition, vec3f cameraTarget)
+{
+    vec3f cameraDirection = {0.0, 0.0, 0.0};
+    vec3fCopy(cameraPosition, cameraDirection);
+    vec3fSubtract(cameraDirection, cameraTarget);
+    vec3fNormalize(cameraDirection);
+
+    vec3f cameraRight = {0.0, 0.0, 0.0};
+    vec3f up = { 0.0, 1.0, 0.0 };
+    vec3fCrossProduct(cameraRight, up, cameraDirection);
+    vec3fNormalize(cameraRight);
+
+    vec3f cameraUp = {0.0, 0.0, 0.0};
+    vec3fCrossProduct(cameraUp, cameraDirection, cameraRight); // tutaj chyba jest błąd
+
+    mat4f tempTranslate;
+    mat4fIdentity(dest);
+    mat4fIdentity(tempTranslate);
+
+    dest[0] = cameraRight[0];
+    dest[1] = cameraRight[1];
+    dest[2] = cameraRight[2];
+    dest[4] = cameraUp[0];
+    dest[5] = cameraUp[1];
+    dest[6] = cameraUp[2];
+    dest[8] = cameraDirection[0];
+    dest[9] = cameraDirection[1];
+    dest[10] = cameraDirection[2];
+
+    tempTranslate[3] = -cameraPosition[0];
+    tempTranslate[7] = -cameraPosition[1];
+    tempTranslate[11] = -cameraPosition[2];
+
+    mat4fMultiply(dest, tempTranslate);
 }
 
 void mat4fPrint(mat4f this)
