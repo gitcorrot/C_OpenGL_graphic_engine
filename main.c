@@ -27,12 +27,16 @@
 const float screenWidth = 1200.0;
 const float screenHeight = 800.0;
 
-vec3f cameraPosition =  { 0.0,  3.0,  15.0 };
+vec3f cameraPosition =  { 7.0,  3.0,  15.0 };
 vec3f cameraFront =     { 0.0,  0.0, -1.0 };
 vec3f cameraUp =        { 0.0,  1.0,  0.0 };
-double fov = 45.0;
+float pitch = 0.0;
+float yaw = -119.0;
+float fov = 45.0;
 
-double lastX, lastY, lastScroll;
+double lastX = 0.0;
+double lastY = 0.0;
+double lastScroll;
 
 double lastMillisTime, deltaTime;
 
@@ -135,27 +139,22 @@ void mouseCallback(GLFWwindow *window, double xPos, double yPos)
         lastY = yPos;
         return;
     }
+    else
+    {
+        printf("yaw: %f, pitch: %f\n", yaw, pitch);
+        const float mouseSensitivity = 0.1;
 
-    if (lastX < xPos)
-    {
-        // mouse moved to the right
-    }
-    else if (lastX > xPos)
-    {
-        // mouse moved to the left
-    }
+        yaw += (xPos - lastX) * mouseSensitivity;
+        pitch -= (yPos - lastY) * mouseSensitivity;
 
-    if (lastY < yPos)
-    {
-        // mouse moved to the top
-    }
-    else if (lastY > yPos)
-    {
-        // mouse moved to the bottom
-    }
+        lastX = xPos;
+        lastY = yPos;
 
-    lastX = xPos;
-    lastY = yPos;
+        if (pitch >= 90.0)
+            pitch = 89.0;
+        else if (pitch <= -90.0)
+            pitch = -89.0;
+    }
 }
 
 void scrollCallback(GLFWwindow *window, double xoffset, double yoffset)
@@ -168,49 +167,50 @@ void scrollCallback(GLFWwindow *window, double xoffset, double yoffset)
         fov = 45.0;
 }
 
-void processKeyboardInput(GLFWwindow* window)
+void processKeyboardInput(GLFWwindow *window)
 {
     // Q
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
-
-    float cameraSpeed = 0.01 * deltaTime;
-    // W
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    else
     {
-        vec3f tmp;
-        vec3fMultiplyScalar(tmp, cameraFront, cameraSpeed);
-        vec3fAdd(cameraPosition, tmp);
-    }
-    // S
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    {
-        vec3f tmp;
-        vec3fMultiplyScalar(tmp, cameraFront, cameraSpeed);
-        vec3fSubtract(cameraPosition, tmp);
-    }
-    // A
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    {
-        vec3f tmp;
-        vec3fCrossProduct(tmp, cameraFront, cameraUp); // right vector
-        vec3fNormalize(tmp);
-        vec3fMultiplyScalar(tmp, tmp, cameraSpeed);
-        vec3fSubtract(cameraPosition, tmp);
-    }
-    // D
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    {
-        vec3f tmp;
-        vec3fCrossProduct(tmp, cameraFront, cameraUp); // right vector
-        vec3fNormalize(tmp);
-        vec3fMultiplyScalar(tmp, tmp, cameraSpeed);
-        vec3fAdd(cameraPosition, tmp);
+        const float cameraSpeed = 0.01 * deltaTime;
+        // W
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        {
+            vec3f tmp;
+            vec3fMultiplyScalar(tmp, cameraFront, cameraSpeed);
+            vec3fAdd(cameraPosition, tmp);
+        }
+        // S
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        {
+            vec3f tmp;
+            vec3fMultiplyScalar(tmp, cameraFront, cameraSpeed);
+            vec3fSubtract(cameraPosition, tmp);
+        }
+        // A
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        {
+            vec3f tmp;
+            vec3fCrossProduct(tmp, cameraFront, cameraUp); // right vector
+            vec3fNormalize(tmp);
+            vec3fMultiplyScalar(tmp, tmp, cameraSpeed);
+            vec3fSubtract(cameraPosition, tmp);
+        }
+        // D
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        {
+            vec3f tmp;
+            vec3fCrossProduct(tmp, cameraFront, cameraUp); // right vector
+            vec3fNormalize(tmp);
+            vec3fMultiplyScalar(tmp, tmp, cameraSpeed);
+            vec3fAdd(cameraPosition, tmp);
+        }
     }
 }
-
 
 int main(void)
 {
@@ -422,10 +422,19 @@ int main(void)
                        (void *)0);
                        
 
-        vec3f tempCameraTarget;
-        vec3fCopy(cameraPosition, tempCameraTarget);
-        vec3fAdd(tempCameraTarget, cameraFront);
-        mat4fLookAt(view, cameraPosition, tempCameraTarget);
+        vec3f direction = 
+        {
+            cosf(yaw*DEG2RAD) * cosf(pitch*DEG2RAD),
+            sinf(pitch*DEG2RAD),
+            sinf(yaw*DEG2RAD) * cosf(pitch*DEG2RAD)
+        };
+        vec3fNormalize(direction);
+        vec3fCopy(direction, cameraFront);
+
+        vec3f cameraTarget; // camera position + camera front
+        vec3fCopy(cameraPosition, cameraTarget);
+        vec3fAdd(cameraTarget, cameraFront); 
+        mat4fLookAt(view, cameraPosition, cameraTarget);
         GLint uniView = glGetUniformLocation(programID, "view");
         glUniformMatrix4fv(uniView, 1, GL_TRUE, view);
 
