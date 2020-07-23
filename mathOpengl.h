@@ -16,17 +16,19 @@ typedef float vec4f[4];
 typedef float mat3f[3 * 3];
 typedef float mat4f[4 * 4];
 
-void vec3fAdd(vec3f this, vec3f v);
-void vec3fSubtract(vec3f this, vec3f v);
-float vec3fDotProduct(vec3f this, vec3f v);
-void vec3fCrossProduct(vec3f result, vec3f v1, vec3f v2);
-float vec3fLength(vec3f this);
-void vec3fNormalize(vec3f this);
-void vec3fCopy(vec3f this, vec3f v); // from "this" to "v"
+void    vec3fAdd(vec3f this, vec3f v);
+void    vec3fSubtract(vec3f this, vec3f v);
+float   vec3fDotProduct(vec3f this, vec3f v);
+void    vec3fCrossProduct(vec3f result, vec3f v1, vec3f v2);
+void    vec3fMultiplyScalar(vec3f result, vec3f m, float s);
+float   vec3fLength(vec3f this);
+void    vec3fNormalize(vec3f this);
+void    vec3fCopy(vec3f this, vec3f v); // from "this" to "v"
+void    vec3fPrint(vec3f this);
 
-void vec4fAdd(vec4f this, vec4f v);
-void vec4fSubtract(vec4f this, vec4f v);
-float vec4fDotProduct(vec4f this, vec4f v);
+void    vec4fAdd(vec4f this, vec4f v);
+void    vec4fSubtract(vec4f this, vec4f v);
+float   vec4fDotProduct(vec4f this, vec4f v);
 
 void mat3fCopy(mat3f this, mat3f m); // from "this" to "m"
 void mat3fAdd(mat3f this, mat3f m);

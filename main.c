@@ -27,9 +27,10 @@
 const float screenWidth = 1200.0;
 const float screenHeight = 800.0;
 
-float cameraX = 0.0;
-float cameraY = 0.0;
-float cameraZ = 5.0;
+vec3f cameraPosition =  { 0.0,  3.0,  15.0 };
+vec3f cameraFront =     { 0.0,  0.0, -1.0 };
+vec3f cameraUp =        { 0.0,  1.0,  0.0 };
+double fov = 45.0;
 
 double lastX, lastY, lastScroll;
 
@@ -126,7 +127,7 @@ GLuint shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFile
     return p;
 }
 
-void mouseCallback(GLFWwindow* window, double xPos, double yPos)
+void mouseCallback(GLFWwindow *window, double xPos, double yPos)
 {
     if (lastX == 0 && lastY == 0)
     {
@@ -157,48 +158,57 @@ void mouseCallback(GLFWwindow* window, double xPos, double yPos)
     lastY = yPos;
 }
 
-void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+void scrollCallback(GLFWwindow *window, double xoffset, double yoffset)
 {
-    if (lastScroll < yoffset)
-    {
-        cameraZ += 0.5;
-    }
-    else if (lastScroll > yoffset)
-    {
-        cameraZ -= 0.5;
-    }   
+    fov -= yoffset;
+
+    if (fov < 1.0)
+        fov = 1.0;
+    else if (fov > 45.0)
+        fov = 45.0;
 }
 
-void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void processKeyboardInput(GLFWwindow* window)
 {
     // Q
-    if (key == GLFW_KEY_Q && action == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
 
+    float cameraSpeed = 0.01 * deltaTime;
     // W
-    if (key == GLFW_KEY_W && action == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        cameraY -= 0.05;
+        vec3f tmp;
+        vec3fMultiplyScalar(tmp, cameraFront, cameraSpeed);
+        vec3fAdd(cameraPosition, tmp);
     }
     // S
-    if (key == GLFW_KEY_S && action == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        cameraY += 0.05;
+        vec3f tmp;
+        vec3fMultiplyScalar(tmp, cameraFront, cameraSpeed);
+        vec3fSubtract(cameraPosition, tmp);
     }
     // A
-    if (key == GLFW_KEY_A && action == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
-        cameraX += 0.05;
+        vec3f tmp;
+        vec3fCrossProduct(tmp, cameraFront, cameraUp); // right vector
+        vec3fNormalize(tmp);
+        vec3fMultiplyScalar(tmp, tmp, cameraSpeed);
+        vec3fSubtract(cameraPosition, tmp);
     }
     // D
-    if (key == GLFW_KEY_D && action == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
-        cameraX -= 0.05;
+        vec3f tmp;
+        vec3fCrossProduct(tmp, cameraFront, cameraUp); // right vector
+        vec3fNormalize(tmp);
+        vec3fMultiplyScalar(tmp, tmp, cameraSpeed);
+        vec3fAdd(cameraPosition, tmp);
     }
-
-
 }
 
 
@@ -250,7 +260,7 @@ int main(void)
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouseCallback);
-    glfwSetKeyCallback(window, keyCallback);
+    // glfwSetKeyCallback(window, keyCallback);
     glfwSetScrollCallback(window, scrollCallback);
 
     glViewport(0, 0, screenWidth, screenHeight);
@@ -273,8 +283,8 @@ int main(void)
     vec3f axisVertices[] = 
     {
         // axis
-        { 0.0f,  0.0f,  0.0f },  {1.0f, 1.0f, 1.0f },  // 8
-        { 0.1f,  0.1f,  0.0f },  {1.0f, 1.0f, 1.0f },  // 9
+        { 0.0f,  0.0f,  0.0f },  {0.7f, 0.7f, 0.7f },  // 8
+        { 0.2f,  0.2f,  0.0f },  {0.7f, 0.7f, 0.7f },  // 9
         { 10.0f, 0.0f,  0.0f },  {1.0f, 0.0f, 0.0f },  // x axis // 10
         { 0.0f,  10.0f, 0.0f },  {0.0f, 1.0f, 0.0f },  // y axis // 11
         { 0.0f,  0.0f,  10.0f},  {0.0f, 0.0f, 1.0f },  // z axis // 12
@@ -309,7 +319,9 @@ int main(void)
         0, 4, 1  // axis z
     };
 
-    GLuint VAO, axisVAO, VBO, axisVBO, EBO, axisEBO;
+    GLuint VAO, axisVAO;
+    GLuint VBO, axisVBO;
+    GLuint EBO, axisEBO;
 
     glGenVertexArrays(1, &VAO);
     glGenVertexArrays(1, &axisVAO);
@@ -346,7 +358,7 @@ int main(void)
     // Load shaders
     GLuint programID = shaderCreateFromFile("test_vs.glsl", "test_fs.glsl");
 
-    vec3f modelsPositions[] = 
+    vec3f cubePositions[] = 
     {
         {-1.5,  3.5, -2.0},
         { 1.5,  2.5, -4.0},
@@ -358,13 +370,10 @@ int main(void)
     mat4f translation, rotation;
 
     // View matrix
-    vec3f cameraPosition = { 0.0, 0.0, 3.0 };
-    vec3f cameraTarget = { 0.0, 0.0, 0.0 };
     mat4f view;
 
     // Projection matrix
     mat4f perspective;
-    mat4fPerspective(perspective, 45.0, screenWidth / screenHeight, 0.1, 100.0);
 
     // Setup time
     lastMillisTime = glfwGetTime() * 1000.0;
@@ -372,19 +381,20 @@ int main(void)
 
     while (glfwWindowShouldClose(window) == 0)
     {
+        processKeyboardInput(window);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.1, 0.1, 0.15, 1);
 
         glUseProgram(programID);
         glBindVertexArray(VAO);
 
+        // draw every cube
         for (int i = 0; i < 4; i++) 
         {
-
             mat4fTranslate(translation,
-                           modelsPositions[i][0],
-                           modelsPositions[i][1],
-                           modelsPositions[i][2]);
+                           cubePositions[i][0],
+                           cubePositions[i][1],
+                           cubePositions[i][2]);
             if (i % 2 == 0)
                 mat4fRotate(rotation, 1, 0, 0, i * 50.0 + (lastMillisTime * DEG2RAD / 5.0));
             else
@@ -410,16 +420,16 @@ int main(void)
                        sizeof(axisIndices) / sizeof(axisIndices[0]),
                        GL_UNSIGNED_INT,
                        (void *)0);
+                       
 
-        float camX = sin(glfwGetTime()) * 20.0;
-        float camZ = cos(glfwGetTime()) * 20.0;
-        cameraPosition[0] = camX;
-        cameraPosition[1] = 10.0;
-        cameraPosition[2] = camZ;
-        mat4fLookAt(view, cameraPosition, cameraTarget);
+        vec3f tempCameraTarget;
+        vec3fCopy(cameraPosition, tempCameraTarget);
+        vec3fAdd(tempCameraTarget, cameraFront);
+        mat4fLookAt(view, cameraPosition, tempCameraTarget);
         GLint uniView = glGetUniformLocation(programID, "view");
         glUniformMatrix4fv(uniView, 1, GL_TRUE, view);
 
+        mat4fPerspective(perspective, fov, screenWidth / screenHeight, 0.1, 100.0);
         GLint uniProj = glGetUniformLocation(programID, "projection");
         glUniformMatrix4fv(uniProj, 1, GL_TRUE, perspective);
 

@@ -34,6 +34,13 @@ void vec3fCrossProduct(vec3f result, vec3f v1, vec3f v2)
     result[2] = v1[0] * v2[1] - v1[1] * v2[0];
 }
 
+void vec3fMultiplyScalar(vec3f result, vec3f m, float s)
+{
+    result[0] = m[0] * s;
+    result[1] = m[1] * s;
+    result[2] = m[2] * s;
+}
+
 float vec3fLength(vec3f this)
 {
     return sqrtf(this[0]*this[0] + this[1]*this[1] + this[2]*this[2]);
@@ -53,6 +60,10 @@ void vec3fNormalize(vec3f this)
     this[2] = this[2] / length;
 }
 
+void vec3fPrint(vec3f this)
+{
+    printf("[%f %f %f]\n", this[0], this[1], this[2]);
+}
 
 /*      vec4f        */
 void vec4fCopy(vec4f this, vec4f v)
