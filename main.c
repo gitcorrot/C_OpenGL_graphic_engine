@@ -20,9 +20,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <string.h>
 
+#include "utils.h"
 #include "mathOpengl.h"
+#include "cube.h"
 
 const float screenWidth = 1200.0;
 const float screenHeight = 800.0;
@@ -40,97 +41,6 @@ double lastScroll;
 
 double lastMillisTime, deltaTime;
 
-GLuint shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFilename)
-{
-    FILE *f;
-    GLchar *vertexShaderTextBuffer;
-    GLchar *fragmentShaderTextBuffer;
-
-    // Read vertex shader text
-    f = fopen(vertexShaderFilename, "r");
-    if (f == NULL)
-    {
-        fprintf(stderr, "Can't open '%s'", vertexShaderFilename);
-        exit(EXIT_FAILURE);
-    }
-    fseek(f, 0, SEEK_END);
-    long textLength = ftell(f);
-    vertexShaderTextBuffer = malloc(sizeof(char) * textLength + 1);
-    fseek(f, 0, SEEK_SET);
-    fread(vertexShaderTextBuffer, 1, textLength, f);
-    vertexShaderTextBuffer[textLength] = '\0';
-    const GLchar *vertexShaderText = vertexShaderTextBuffer;
-    fclose(f);
-
-    // Read fragment shader text
-    f = fopen(fragmentShaderFilename, "r");
-    if (f == NULL)
-    {
-        fprintf(stderr, "Can't open '%s'", fragmentShaderFilename);
-        exit(EXIT_FAILURE);
-    }
-    fseek(f, 0, SEEK_END);
-    textLength = ftell(f);
-    fragmentShaderTextBuffer = malloc(sizeof(char) * textLength + 1);
-    fseek(f, 0, SEEK_SET);
-    fread(fragmentShaderTextBuffer, 1, textLength, f);
-    fragmentShaderTextBuffer[textLength] = '\0';
-    const GLchar *fragmentShaderText = fragmentShaderTextBuffer;
-    fclose(f);
-
-    char infoLogBuffer[512];
-    int success;
-
-    // Create vertex shader
-    GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(VertexShaderID, 1, &vertexShaderText, NULL);
-    glCompileShader(VertexShaderID);
-    glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(VertexShaderID, 512, NULL, infoLogBuffer);
-        fprintf(stderr,
-                "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s",
-                infoLogBuffer);
-    };
-
-    // Create fragment shader
-    GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(FragmentShaderID, 1, &fragmentShaderText, NULL);
-    glCompileShader(FragmentShaderID);
-    glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(FragmentShaderID, 512, NULL, infoLogBuffer);
-        fprintf(stderr,
-                "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n%s",
-                infoLogBuffer);
-    };
-
-    // Attach and link shaders to program
-    GLuint p = glCreateProgram();
-    glAttachShader(p, VertexShaderID);
-    glAttachShader(p, FragmentShaderID);
-    glLinkProgram(p);
-    glGetProgramiv(p, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        glGetProgramInfoLog(p, 512, NULL, infoLogBuffer);
-        fprintf(stderr,
-                "ERROR::ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s",
-                infoLogBuffer);
-    }
-
-    // Clean up
-    glDeleteShader(VertexShaderID);
-    glDeleteShader(FragmentShaderID);
-
-    free(vertexShaderTextBuffer);
-    free(fragmentShaderTextBuffer);
-
-    return p;
-}
-
 void mouseCallback(GLFWwindow *window, double xPos, double yPos)
 {
     if (lastX == 0 && lastY == 0)
@@ -141,7 +51,7 @@ void mouseCallback(GLFWwindow *window, double xPos, double yPos)
     }
     else
     {
-        printf("yaw: %f, pitch: %f\n", yaw, pitch);
+        // printf("yaw: %f, pitch: %f\n", yaw, pitch);
         const float mouseSensitivity = 0.1;
 
         yaw += (xPos - lastX) * mouseSensitivity;
@@ -266,20 +176,6 @@ int main(void)
     glViewport(0, 0, screenWidth, screenHeight);
     glEnable(GL_DEPTH_TEST);
 
-    vec3f vertices[] = 
-    {
-        // position             // color
-        {-0.5f,  0.5f, 0.5f},   {0.9f, 0.0f, 0.0f },   // 0
-        {-0.5f, -0.5f, 0.5f},   {0.0f, 0.9f, 0.0f },   // 1
-        { 0.5f, -0.5f, 0.5f},   {0.0f, 1.0f, 0.9f },   // 2
-        { 0.5f,  0.5f, 0.5f},   {1.0f, 1.0f, 1.0f },   // 3
-        
-        {-0.5f,  0.5f, -0.5f},   {0.9f, 0.5f, 0.0f },   // 4
-        {-0.5f, -0.5f, -0.5f},   {0.0f, 0.9f, 1.0f },   // 5
-        { 0.5f, -0.5f, -0.5f},   {0.7f, 0.0f, 0.9f },   // 6
-        { 0.5f,  0.5f, -0.5f},   {1.0f, 1.0f, 1.0f },   // 7
-    };
-
     vec3f axisVertices[] = 
     {
         // axis
@@ -290,28 +186,6 @@ int main(void)
         { 0.0f,  0.0f,  10.0f},  {0.0f, 0.0f, 1.0f },  // z axis // 12
     };
 
-    GLuint indices[] = 
-    {
-        // front
-        2, 1, 0,
-        0, 3, 2,
-        // back
-        6, 5, 4,
-        4, 7, 6,
-        // left 
-        1, 5, 4,
-        4, 0, 1,
-        // right
-        6, 2, 3,
-        3, 7, 6,
-        // top
-        3, 0, 4,
-        4, 7, 3, 
-        // bottom
-        2, 1, 5,
-        5, 6, 2
-    };
-
     GLuint axisIndices[] = 
     {
         0, 2, 1, // axis x
@@ -319,29 +193,13 @@ int main(void)
         0, 4, 1  // axis z
     };
 
-    GLuint VAO, axisVAO;
-    GLuint VBO, axisVBO;
-    GLuint EBO, axisEBO;
+    GLuint axisVAO;
+    GLuint axisVBO;
+    GLuint axisEBO;
 
-    glGenVertexArrays(1, &VAO);
     glGenVertexArrays(1, &axisVAO);
-    glGenBuffers(1, &VBO);
     glGenBuffers(1, &axisVBO);
-    glGenBuffers(1, &EBO);
     glGenBuffers(1, &axisEBO);
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // Positions (first 3)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)0);
-    glEnableVertexAttribArray(0);
-    // Colors (second 3)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
 
     glBindVertexArray(axisVAO);
     glBindBuffer(GL_ARRAY_BUFFER, axisVBO);
@@ -358,17 +216,6 @@ int main(void)
     // Load shaders
     GLuint programID = shaderCreateFromFile("test_vs.glsl", "test_fs.glsl");
 
-    vec3f cubePositions[] = 
-    {
-        {-1.5,  3.5, -2.0},
-        { 1.5,  2.5, -4.0},
-        { 0.0,  1.0, -6.0},
-        { 2.5,  2.0, -8.0}
-    };
-
-    // Model matrix
-    mat4f translation, rotation;
-
     // View matrix
     mat4f view;
 
@@ -379,42 +226,45 @@ int main(void)
     lastMillisTime = glfwGetTime() * 1000.0;
     deltaTime = lastMillisTime;
 
+    // Generate cubes
+    vec3f cubePositions[] = 
+    {
+        {-1.5,  3.5, -2.0},
+        { 1.5,  2.5, -4.0},
+        { 0.0,  1.0, -6.0},
+        { 2.5,  2.0, -8.0}
+    };
+
+    Cube *cubes[4];
+    cubeInit();
+    for (int i = 0; i < 4; i++)
+    {
+        cubes[i] = cubeCreate();
+        cubeSetPosition(cubes[i], cubePositions[i]);
+        cubePrint(cubes[i]);
+    }
+
     while (glfwWindowShouldClose(window) == 0)
     {
         processKeyboardInput(window);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.1, 0.1, 0.15, 1);
 
-        glUseProgram(programID);
-        glBindVertexArray(VAO);
-
         // draw every cube
         for (int i = 0; i < 4; i++) 
         {
-            mat4fTranslate(translation,
-                           cubePositions[i][0],
-                           cubePositions[i][1],
-                           cubePositions[i][2]);
-            if (i % 2 == 0)
-                mat4fRotate(rotation, 1, 0, 0, i * 50.0 + (lastMillisTime * DEG2RAD / 5.0));
-            else
-                mat4fRotate(rotation, 0, 1, 0, i * 50.0 + (lastMillisTime * DEG2RAD / 5.0));
-
-            mat4fMultiply(translation, rotation);
-
-            GLint uniModel = glGetUniformLocation(programID, "model");
-            glUniformMatrix4fv(uniModel, 1, GL_TRUE, translation);
-
-            glDrawElements(GL_TRIANGLES,
-                           sizeof(indices) / sizeof(indices[0]),
-                           GL_UNSIGNED_INT,
-                           (void *)0);
+            cubeTranslate(cubes[i], 0, 0, 0.025);
+            cubeRotate(cubes[i], 0, 1, 0, 5*DEG2RAD);
+            // cubeScale(cubes[i], 0.01, 0.01, 0.01);
+            cubeRender(cubes[i]);
         }
 
+        // Render axis
         glBindVertexArray(axisVAO);
-        mat4fIdentity(translation);
+        mat4f axisTranslation;
+        mat4fIdentity(axisTranslation);
         GLint uniModel = glGetUniformLocation(programID, "model");
-        glUniformMatrix4fv(uniModel, 1, GL_TRUE, translation);
+        glUniformMatrix4fv(uniModel, 1, GL_TRUE, axisTranslation);
 
         glDrawElements(GL_TRIANGLES,
                        sizeof(axisIndices) / sizeof(axisIndices[0]),
@@ -422,6 +272,7 @@ int main(void)
                        (void *)0);
                        
 
+        // Camera
         vec3f direction = 
         {
             cosf(yaw*DEG2RAD) * cosf(pitch*DEG2RAD),
@@ -454,8 +305,9 @@ int main(void)
 
     printf("Exiting...\n");
     glfwDestroyWindow(window);
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &axisVAO);
+    glDeleteBuffers(1, &axisVBO);
+    glDeleteBuffers(1, &axisEBO);
     glDeleteProgram(programID);
     glfwTerminate();
 

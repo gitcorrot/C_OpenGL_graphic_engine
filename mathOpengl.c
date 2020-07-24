@@ -46,18 +46,25 @@ float vec3fLength(vec3f this)
     return sqrtf(this[0]*this[0] + this[1]*this[1] + this[2]*this[2]);
 }
 
-void vec3fCopy(vec3f this, vec3f v) // from "this" to "v"
-{
-    for (int i = 0; i < 3; i++)
-        v[i] = this[i];
-}
-
 void vec3fNormalize(vec3f this)
 {
     float length = vec3fLength(this);
     this[0] = this[0] / length;
     this[1] = this[1] / length;
     this[2] = this[2] / length;
+}
+
+void vec3fEmpty(vec3f this)
+{
+    this[0] = 0;
+    this[1] = 0;
+    this[2] = 0;
+}
+
+void vec3fCopy(vec3f this, vec3f v) // from "this" to "v"
+{
+    for (int i = 0; i < 3; i++)
+        v[i] = this[i];
 }
 
 void vec3fPrint(vec3f this)
@@ -220,7 +227,7 @@ void mat4fScale(mat4f dest, float x, float y, float z)
     dest[11] *= z;
 }
 
-void mat4fRotate(mat4f dest, float x, float y, float z, float theta)
+void mat4fRotation(mat4f dest, float x, float y, float z, float theta)
 {
     // TODO: tmp is not neccesary?
     mat4f tmp;
@@ -247,6 +254,17 @@ void mat4fRotate(mat4f dest, float x, float y, float z, float theta)
 
     mat4fCopy(tmp, dest);
 }
+
+// TODO:
+// void mat4fRotationFromEuler(mat4f dest, float yaw, float pitch, float roll)
+// {
+//     mat4f yawMatrix, pitchMatrix, rollMatrix;
+//     mat4fIdentity(yawMatrix);
+//     mat4fIdentity(pitchMatrix);
+//     mat4fIdentity(rollMatrix);
+
+
+// }
 
 void mat4fPerspective(mat4f dest, float fov, float aspectRatio, float near, float far)
 {

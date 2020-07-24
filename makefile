@@ -1,19 +1,21 @@
 CC = gcc
 CFLAGS  = -g -Wall
 TARGET = main
-LDFLAGS = -lglfw3 -lrt -lm -ldl -lX11 -lpthread -lxcb -lXau -lXdmcp -ldl
+LDFLAGS = -lglfw3 -lrt -lm -ldl -lX11 -lpthread -lxcb -lXau -lXdmcp
 CFILES = $(TARGET).c
 
 prog:
 	@echo "Building..."
-	@$(CC) $(CFLAGS) -o $(TARGET) $(CFILES) $(LDFLAGS) -L/home/corrot/Desktop/C_Projekty/test21 mathOpengl.a
+	@$(CC) $(CFLAGS) -o $(TARGET) $(CFILES) $(LDFLAGS) -L/home/corrot/Desktop/C_Projekty/opengl_test mathOpengl.a cube.a utils.a
 	@echo "...done!"
 	@./main
 
 libs:
 	@echo "Generating libraries..."
-	@gcc $(CFLAGS) -O -c mathOpengl.c
-	@ar rcs mathOpengl.a mathOpengl.o
+	@gcc $(CFLAGS) -O -c mathOpengl.c cube.c utils.c
+	@ar rcs mathOpengl.a mathOpengl.o utils.o
+	@ar rcs cube.a cube.o
+	@ar rcs utils.a utils.o
 	@echo "...done!"
 
 clean:
