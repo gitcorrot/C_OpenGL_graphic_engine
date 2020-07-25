@@ -30,19 +30,33 @@ static const int indices[] =
 static const vec3f vertices[] = 
 {
     // position             // color
-    {-0.5f,  0.5f, 0.5f},   {0.0f, 0.0f, 0.6f },   // 0
-    {-0.5f, -0.5f, 0.5f},   {0.0f, 0.0f, 0.9f },   // 1
-    { 0.5f, -0.5f, 0.5f},   {0.0f, 0.0f, 0.7f },   // 2
-    { 0.5f,  0.5f, 0.5f},   {0.0f, 0.0f, 1.0f },   // 3
+    {-0.5,  0.5, 0.5},   {0.0, 0.0, 0.9 },   // 0
+    {-0.5, -0.5, 0.5},   {0.0, 0.0, 0.9 },   // 1
+    { 0.5, -0.5, 0.5},   {0.0, 0.0, 0.9 },   // 2
+    { 0.5,  0.5, 0.5},   {0.0, 0.0, 0.9 },   // 3
         
-    {-0.5f,  0.5f, -0.5f},   {0.5f, 0.5f, 0.5f },   // 4
-    {-0.5f, -0.5f, -0.5f},   {0.0f, 0.0f, 1.0f },   // 5
-    { 0.5f, -0.5f, -0.5f},   {0.0f, 0.0f, 0.9f },   // 6
-    { 0.5f,  0.5f, -0.5f},   {0.5f, 0.5f, 0.5f },   // 7
+    {-0.5,  0.5, -0.5},  {0.8, 0.8, 0.0 },   // 4
+    {-0.5, -0.5, -0.5},  {0.8, 0.8, 0.0 },   // 5
+    { 0.5, -0.5, -0.5},  {0.8, 0.8, 0.0 },   // 6
+    { 0.5,  0.5, -0.5},  {0.8, 0.8, 0.0 },   // 7
 };
 
 static GLuint programID;
 static GLuint VAO, VBO, EBO;
+
+Cube *cubeCreate()
+{
+    Cube *cube = (Cube *)malloc(sizeof(Cube));
+
+    cube->objectID = (GLuint)rand();
+    cube->programID = programID;
+
+    mat4fIdentity(cube->translation);
+    mat4fIdentity(cube->rotation);
+    mat4fIdentity(cube->scale);
+
+    return cube;
+}
 
 void cubeInit()
 {
@@ -65,24 +79,6 @@ void cubeInit()
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-}
-
-Cube *cubeCreate()
-{
-    Cube *cube = (Cube *)malloc(sizeof(Cube));
-
-    cube->objectID = (GLuint)rand();
-    cube->programID = programID;
-
-    // cube->VAO = VAO;
-    // cube->VBO = VBO;
-    // cube->EBO = EBO;
-
-    mat4fIdentity(cube->translation);
-    mat4fIdentity(cube->rotation);
-    mat4fIdentity(cube->scale);
-
-    return cube;
 }
 
 void cubeSetPosition(Cube *self, vec3f position)
@@ -114,21 +110,6 @@ void cubeScale(Cube *self, float x, float y, float z)
     self->scale[10] += z;
 }
 
-void cubeDestroy(Cube *self)
-{
-    // glDeleteVertexArrays(1, &self->VAO);
-    // glDeleteBuffers(1, &self->VBO);
-    // glDeleteBuffers(1, &self->EBO);
-    free(self);
-}
-
-void cubePrint(Cube *self)
-{
-    printf("[Cube object]\n");
-    printf("  objectID: %d\n", self->objectID);
-    printf("  programiD: %d\n", self->programID);
-}
-
 void cubeRender(Cube *self)
 {
     glUseProgram(self->programID);
@@ -144,4 +125,18 @@ void cubeRender(Cube *self)
 
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)0);
     glBindVertexArray(0);
+}
+
+
+void cubeDestroy(Cube *self)
+{
+    free(self);
+}
+
+void cubePrint(Cube *self)
+{
+    printf("\n[Cube object]\n");
+    printf("objectID: %d\n", self->objectID);
+    printf("programiD: %d\n", self->programID);
+    printf("\n");
 }

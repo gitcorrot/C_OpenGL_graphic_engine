@@ -1,15 +1,5 @@
-    // TODO:
-    // create input library:
-    //  - in keyCallback() function only sets flags
-    //  - update() function that checks flags and do what is needed (or updateMouseInput(), updateKeyboardInput())
-    // or:
-    //  - make class (OOB in C) InputManager and place the functions there
-    // or:
-    //  - only use glfwGetKey(window,key)
-
-    // crate Camera class/library
-    //  - s
-
+// TODO:
+// find a way to get nicely with programID of every object
 
 #define GL3W_IMPLEMENTATION
 #include "GL/gl3w.h" // https://github.com/gingerBill/gl3w-Single-File
@@ -23,104 +13,27 @@
 
 #include "utils.h"
 #include "mathOpengl.h"
+#include "camera.h"
+#include "input.h"
 #include "cube.h"
 
 const float screenWidth = 1200.0;
 const float screenHeight = 800.0;
 
-vec3f cameraPosition =  { 7.0,  3.0,  15.0 };
-vec3f cameraFront =     { 0.0,  0.0, -1.0 };
-vec3f cameraUp =        { 0.0,  1.0,  0.0 };
-float pitch = 0.0;
-float yaw = -119.0;
-float fov = 45.0;
+float lastMillisTime, deltaTime;
 
-double lastX = 0.0;
-double lastY = 0.0;
-double lastScroll;
-
-double lastMillisTime, deltaTime;
-
-void mouseCallback(GLFWwindow *window, double xPos, double yPos)
+// AXIS FOR DEBUGGING
+GLuint axisIndices[] =
 {
-    if (lastX == 0 && lastY == 0)
-    {
-        lastX = xPos;
-        lastY = yPos;
-        return;
-    }
-    else
-    {
-        // printf("yaw: %f, pitch: %f\n", yaw, pitch);
-        const float mouseSensitivity = 0.1;
+    0, 2, 1, // axis x
+    0, 3, 1, // axis y
+    0, 4, 1  // axis z
+};
+GLuint axisVAO, axisVBO, axisEBO;
+void initAxis();
+void drawAxis();
+// END OF AXIS FOR DEBUGGING
 
-        yaw += (xPos - lastX) * mouseSensitivity;
-        pitch -= (yPos - lastY) * mouseSensitivity;
-
-        lastX = xPos;
-        lastY = yPos;
-
-        if (pitch >= 90.0)
-            pitch = 89.0;
-        else if (pitch <= -90.0)
-            pitch = -89.0;
-    }
-}
-
-void scrollCallback(GLFWwindow *window, double xoffset, double yoffset)
-{
-    fov -= yoffset;
-
-    if (fov < 1.0)
-        fov = 1.0;
-    else if (fov > 45.0)
-        fov = 45.0;
-}
-
-void processKeyboardInput(GLFWwindow *window)
-{
-    // Q
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    }
-    else
-    {
-        const float cameraSpeed = 0.01 * deltaTime;
-        // W
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        {
-            vec3f tmp;
-            vec3fMultiplyScalar(tmp, cameraFront, cameraSpeed);
-            vec3fAdd(cameraPosition, tmp);
-        }
-        // S
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        {
-            vec3f tmp;
-            vec3fMultiplyScalar(tmp, cameraFront, cameraSpeed);
-            vec3fSubtract(cameraPosition, tmp);
-        }
-        // A
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        {
-            vec3f tmp;
-            vec3fCrossProduct(tmp, cameraFront, cameraUp); // right vector
-            vec3fNormalize(tmp);
-            vec3fMultiplyScalar(tmp, tmp, cameraSpeed);
-            vec3fSubtract(cameraPosition, tmp);
-        }
-        // D
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        {
-            vec3f tmp;
-            vec3fCrossProduct(tmp, cameraFront, cameraUp); // right vector
-            vec3fNormalize(tmp);
-            vec3fMultiplyScalar(tmp, tmp, cameraSpeed);
-            vec3fAdd(cameraPosition, tmp);
-        }
-    }
-}
 
 int main(void)
 {
@@ -166,16 +79,100 @@ int main(void)
 
     printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-    // Input configuration
-    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouseCallback);
-    // glfwSetKeyCallback(window, keyCallback);
-    glfwSetScrollCallback(window, scrollCallback);
 
     glViewport(0, 0, screenWidth, screenHeight);
     glEnable(GL_DEPTH_TEST);
+    initAxis();
 
+    // Load shaders (for axis)
+    GLuint programID = shaderCreateFromFile("test_vs.glsl", "test_fs.glsl");
+
+    CameraHandler *cameraHandler = cameraCreate(screenWidth, screenHeight);
+    InputHandler *inputHandler = inputCreate(window, cameraHandler);
+    inputInit(inputHandler);
+
+    // Setup time
+    lastMillisTime = glfwGetTime() * 1000.0;
+    deltaTime = lastMillisTime;
+
+    // Generate cubes
+    vec3f cubePositions[] = 
+    {
+        {-1.5,  3.5, -2.0},
+        { 1.5,  2.5, -4.0},
+        { 0.0,  1.0, -6.0},
+        { 2.5,  2.0, -8.0},
+        { 4.5,  2.0, -0.0}
+    };
+
+    Cube *cubes[5];
+    cubeInit();
+    for (int i = 0; i < 5; i++)
+    {
+        cubes[i] = cubeCreate();
+        cubeSetPosition(cubes[i], cubePositions[i]);
+        cubePrint(cubes[i]);
+    }
+
+    while (glfwWindowShouldClose(window) == 0)
+    {
+        inputUpdate(inputHandler, deltaTime);
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0.1, 0.1, 0.15, 1);
+
+        // draw every cube
+        for (int i = 0; i < 5; i++) 
+        {
+            // cubeTranslate(cubes[i], 0, 0, 0.025);
+            cubeRotate(cubes[i], 0, 1, 0, 5*DEG2RAD);
+            // cubeScale(cubes[i], 0.01, 0.01, 0.01);
+            cubeRender(cubes[i]);
+        }
+
+        // Render axis
+        drawAxis(programID);
+                       
+        cameraUpdate(cameraHandler);
+
+        mat4f view;
+        cameraGetViewMatrix(cameraHandler, view);
+        GLint uniView = glGetUniformLocation(programID, "view");
+        glUniformMatrix4fv(uniView, 1, GL_TRUE, view);
+
+        mat4f perspective;
+        cameraGetPerspectiveMatrix(cameraHandler, perspective);
+        GLint uniProj = glGetUniformLocation(programID, "projection");
+        glUniformMatrix4fv(uniProj, 1, GL_TRUE, perspective);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+
+        // Update delta time
+        double tempTime = (float)glfwGetTime() * 1000.0;
+        deltaTime = tempTime - lastMillisTime;
+        lastMillisTime = tempTime;
+        // printf("dt = %f\n", deltaTime);
+    }
+
+    printf("Exiting...\n");
+
+    for (int i = 0; i < 5; i++)
+        cubeDestroy(cubes[i]);
+
+    glfwDestroyWindow(window);
+    // glDeleteVertexArrays(1, &axisVAO);
+    // glDeleteBuffers(1, &axisVBO);
+    // glDeleteBuffers(1, &axisEBO);
+    glDeleteProgram(programID);
+    glfwTerminate();
+
+    exit(EXIT_SUCCESS);
+}
+
+
+void initAxis()
+{
     vec3f axisVertices[] = 
     {
         // axis
@@ -185,17 +182,6 @@ int main(void)
         { 0.0f,  10.0f, 0.0f },  {0.0f, 1.0f, 0.0f },  // y axis // 11
         { 0.0f,  0.0f,  10.0f},  {0.0f, 0.0f, 1.0f },  // z axis // 12
     };
-
-    GLuint axisIndices[] = 
-    {
-        0, 2, 1, // axis x
-        0, 3, 1, // axis y
-        0, 4, 1  // axis z
-    };
-
-    GLuint axisVAO;
-    GLuint axisVBO;
-    GLuint axisEBO;
 
     glGenVertexArrays(1, &axisVAO);
     glGenBuffers(1, &axisVBO);
@@ -211,105 +197,19 @@ int main(void)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, axisEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(axisIndices), axisIndices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(axisIndices), axisIndices, GL_STATIC_DRAW); 
+}
 
-    // Load shaders
-    GLuint programID = shaderCreateFromFile("test_vs.glsl", "test_fs.glsl");
+void drawAxis(GLuint programID)
+{
+    glBindVertexArray(axisVAO);
+    mat4f axisTranslation;
+    mat4fIdentity(axisTranslation);
+    GLint uniModel = glGetUniformLocation(programID, "model");
+    glUniformMatrix4fv(uniModel, 1, GL_TRUE, axisTranslation);
 
-    // View matrix
-    mat4f view;
-
-    // Projection matrix
-    mat4f perspective;
-
-    // Setup time
-    lastMillisTime = glfwGetTime() * 1000.0;
-    deltaTime = lastMillisTime;
-
-    // Generate cubes
-    vec3f cubePositions[] = 
-    {
-        {-1.5,  3.5, -2.0},
-        { 1.5,  2.5, -4.0},
-        { 0.0,  1.0, -6.0},
-        { 2.5,  2.0, -8.0}
-    };
-
-    Cube *cubes[4];
-    cubeInit();
-    for (int i = 0; i < 4; i++)
-    {
-        cubes[i] = cubeCreate();
-        cubeSetPosition(cubes[i], cubePositions[i]);
-        cubePrint(cubes[i]);
-    }
-
-    while (glfwWindowShouldClose(window) == 0)
-    {
-        processKeyboardInput(window);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(0.1, 0.1, 0.15, 1);
-
-        // draw every cube
-        for (int i = 0; i < 4; i++) 
-        {
-            cubeTranslate(cubes[i], 0, 0, 0.025);
-            cubeRotate(cubes[i], 0, 1, 0, 5*DEG2RAD);
-            // cubeScale(cubes[i], 0.01, 0.01, 0.01);
-            cubeRender(cubes[i]);
-        }
-
-        // Render axis
-        glBindVertexArray(axisVAO);
-        mat4f axisTranslation;
-        mat4fIdentity(axisTranslation);
-        GLint uniModel = glGetUniformLocation(programID, "model");
-        glUniformMatrix4fv(uniModel, 1, GL_TRUE, axisTranslation);
-
-        glDrawElements(GL_TRIANGLES,
-                       sizeof(axisIndices) / sizeof(axisIndices[0]),
-                       GL_UNSIGNED_INT,
-                       (void *)0);
-                       
-
-        // Camera
-        vec3f direction = 
-        {
-            cosf(yaw*DEG2RAD) * cosf(pitch*DEG2RAD),
-            sinf(pitch*DEG2RAD),
-            sinf(yaw*DEG2RAD) * cosf(pitch*DEG2RAD)
-        };
-        vec3fNormalize(direction);
-        vec3fCopy(direction, cameraFront);
-
-        vec3f cameraTarget; // camera position + camera front
-        vec3fCopy(cameraPosition, cameraTarget);
-        vec3fAdd(cameraTarget, cameraFront); 
-        mat4fLookAt(view, cameraPosition, cameraTarget);
-        GLint uniView = glGetUniformLocation(programID, "view");
-        glUniformMatrix4fv(uniView, 1, GL_TRUE, view);
-
-        mat4fPerspective(perspective, fov, screenWidth / screenHeight, 0.1, 100.0);
-        GLint uniProj = glGetUniformLocation(programID, "projection");
-        glUniformMatrix4fv(uniProj, 1, GL_TRUE, perspective);
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-
-        // Update delta time
-        double tempTime = glfwGetTime() * 1000.0;
-        deltaTime = tempTime - lastMillisTime;
-        lastMillisTime = tempTime;
-        // printf("dt = %f\n", deltaTime);
-    }
-
-    printf("Exiting...\n");
-    glfwDestroyWindow(window);
-    glDeleteVertexArrays(1, &axisVAO);
-    glDeleteBuffers(1, &axisVBO);
-    glDeleteBuffers(1, &axisEBO);
-    glDeleteProgram(programID);
-    glfwTerminate();
-
-    exit(EXIT_SUCCESS);
+    glDrawElements(GL_TRIANGLES,
+                   sizeof(axisIndices) / sizeof(axisIndices[0]),
+                   GL_UNSIGNED_INT,
+                   (void *)0);
 }

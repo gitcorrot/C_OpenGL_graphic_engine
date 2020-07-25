@@ -9,4 +9,3 @@
 GLuint shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFilename);
 
 #endif
- 
