@@ -1,7 +1,7 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
-#include "GL/gl3w.h"
+#include "../include/GL/gl3w.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>

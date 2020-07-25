@@ -2,7 +2,7 @@
 // find a way to get nicely with programID of every object
 
 #define GL3W_IMPLEMENTATION
-#include "GL/gl3w.h" // https://github.com/gingerBill/gl3w-Single-File
+#include "../include/GL/gl3w.h" // https://github.com/gingerBill/gl3w-Single-File
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -85,7 +85,7 @@ int main(void)
     initAxis();
 
     // Load shaders (for axis)
-    GLuint programID = shaderCreateFromFile("test_vs.glsl", "test_fs.glsl");
+    GLuint programID = shaderCreateFromFile("../resources/shaders/test_vs.glsl", "../resources/shaders/test_fs.glsl");
 
     CameraHandler *cameraHandler = cameraCreate(screenWidth, screenHeight);
     InputHandler *inputHandler = inputCreate(window, cameraHandler);
@@ -105,8 +105,8 @@ int main(void)
         { 4.5,  2.0, -0.0}
     };
 
-    Cube *cubes[5];
     cubeInit();
+    Cube *cubes[5];
     for (int i = 0; i < 5; i++)
     {
         cubes[i] = cubeCreate();
