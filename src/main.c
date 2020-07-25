@@ -85,7 +85,7 @@ int main(void)
     initAxis();
 
     // Load shaders (for axis)
-    GLuint programID = shaderCreateFromFile("../resources/shaders/test_vs.glsl", "../resources/shaders/test_fs.glsl");
+    GLuint programID = shaderCreateFromFile("resources/shaders/test_vs.glsl", "resources/shaders/test_fs.glsl");
 
     CameraHandler *cameraHandler = cameraCreate(screenWidth, screenHeight);
     InputHandler *inputHandler = inputCreate(window, cameraHandler);

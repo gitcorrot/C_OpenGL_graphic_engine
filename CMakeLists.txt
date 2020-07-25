@@ -21,10 +21,23 @@ find_package( GLFW3 NAMES glfw3 glfw REQUIRED )
 # Define the include DIRs
 include_directories(
 	"${CMAKE_SOURCE_DIR}/src"
-	"${CMAKE_SOURCE_DIR}/include")
+	"${CMAKE_SOURCE_DIR}/include"
+	"${CMAKE_SOURCE_DIR}/resources")
 
 # Put all libraries into a variable
 set(LIBS glfw3 rt m dl X11 Xau Xdmcp xcb ${CMAKE_THREAD_LIBS_INIT})
 
 # Define the link libraries
 target_link_libraries(${PROJECT_NAME} ${LIBS})
+
+
+
+set (source "${CMAKE_SOURCE_DIR}/resources")
+set (destination "${CMAKE_CURRENT_BINARY_DIR}/resources")
+add_custom_command(
+ TARGET ${PROJECT_NAME} POST_BUILD
+ COMMAND ${CMAKE_COMMAND} -E create_symlink ${source} ${destination} 
+ DEPENDS ${destination}
+ COMMENT "symbolic link resources folder from ${source} => ${destination}"
+)
+

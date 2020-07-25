@@ -60,7 +60,7 @@ Cube *cubeCreate()
 
 void cubeInit()
 {
-    programID = shaderCreateFromFile("../resources/shaders/test_vs.glsl", "../resources/shaders/test_fs.glsl");
+    programID = shaderCreateFromFile("resources/shaders/test_vs.glsl", "resources/shaders/test_fs.glsl");
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
