@@ -1,9 +1,9 @@
 #version 330
 
     layout (location = 0) in vec3 Position;
-    layout (location = 1) in vec3 Color;
+    layout (location = 1) in vec2 TexturePosition;
 
-    out vec3 vs_color;
+    out vec2 vs_texturePosition;
 
     uniform mat4 model;
     uniform mat4 view;
@@ -12,6 +12,5 @@
     void main() 
     {
         gl_Position = projection * view * model * vec4(Position, 1.0);
-
-        vs_color = Color;
+        vs_texturePosition = vec2(TexturePosition.x, TexturePosition.y);
     }

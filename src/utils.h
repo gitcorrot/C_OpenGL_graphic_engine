@@ -6,6 +6,12 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-GLuint shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFilename);
+#define DEBUG 0
+
+#define LOG_D(format, args...)                                        \
+    if (DEBUG)                                                        \
+    {                                                                 \
+        printf("%s:%d " format "\n", __FUNCTION__, __LINE__, ##args); \
+    }
 
 #endif

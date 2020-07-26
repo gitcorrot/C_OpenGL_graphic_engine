@@ -17,8 +17,9 @@
 #include "input.h"
 #include "cube.h"
 
+
 const float screenWidth = 1200.0;
-const float screenHeight = 800.0;
+const float screenHeight = 1000.0;
 
 float lastMillisTime, deltaTime;
 
@@ -82,10 +83,6 @@ int main(void)
 
     glViewport(0, 0, screenWidth, screenHeight);
     glEnable(GL_DEPTH_TEST);
-    initAxis();
-
-    // Load shaders (for axis)
-    GLuint programID = shaderCreateFromFile("resources/shaders/test_vs.glsl", "resources/shaders/test_fs.glsl");
 
     CameraHandler *cameraHandler = cameraCreate(screenWidth, screenHeight);
     InputHandler *inputHandler = inputCreate(window, cameraHandler);
@@ -111,39 +108,29 @@ int main(void)
     {
         cubes[i] = cubeCreate();
         cubeSetPosition(cubes[i], cubePositions[i]);
-        cubePrint(cubes[i]);
     }
 
     while (glfwWindowShouldClose(window) == 0)
     {
-        inputUpdate(inputHandler, deltaTime);
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.1, 0.1, 0.15, 1);
 
+        inputUpdate(inputHandler, deltaTime);
+
+        mat4f view, perspective;
+        cameraUpdate(cameraHandler);
+        cameraGetViewMatrix(cameraHandler, view);
+        cameraGetPerspectiveMatrix(cameraHandler, perspective);
+
         // draw every cube
+        cubeUpdateProjection(view, perspective);
         for (int i = 0; i < 5; i++) 
         {
             // cubeTranslate(cubes[i], 0, 0, 0.025);
-            cubeRotate(cubes[i], 0, 1, 0, 5*DEG2RAD);
-            // cubeScale(cubes[i], 0.01, 0.01, 0.01);
+            cubeRotate(cubes[i], 0, 1, 0, 1*DEG2RAD);
+            // cubeScale(cubes[i], -0.001, -0.001, -0.001);
             cubeRender(cubes[i]);
         }
-
-        // Render axis
-        drawAxis(programID);
-                       
-        cameraUpdate(cameraHandler);
-
-        mat4f view;
-        cameraGetViewMatrix(cameraHandler, view);
-        GLint uniView = glGetUniformLocation(programID, "view");
-        glUniformMatrix4fv(uniView, 1, GL_TRUE, view);
-
-        mat4f perspective;
-        cameraGetPerspectiveMatrix(cameraHandler, perspective);
-        GLint uniProj = glGetUniformLocation(programID, "projection");
-        glUniformMatrix4fv(uniProj, 1, GL_TRUE, perspective);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -161,10 +148,6 @@ int main(void)
         cubeDestroy(cubes[i]);
 
     glfwDestroyWindow(window);
-    // glDeleteVertexArrays(1, &axisVAO);
-    // glDeleteBuffers(1, &axisVBO);
-    // glDeleteBuffers(1, &axisEBO);
-    glDeleteProgram(programID);
     glfwTerminate();
 
     exit(EXIT_SUCCESS);

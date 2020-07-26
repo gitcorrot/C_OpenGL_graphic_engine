@@ -2,54 +2,40 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "utils.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "../include/stb_image.h"
+
 #include "cube.h"
+#include "shader.h"
+#include "utils.h"
 
-static const int indices[] =
+static const float vertices[] =
 {
-    // front
-    2, 1, 0,
-    0, 3, 2,
-    // back
-    6, 5, 4,
-    4, 7, 6,
-    // left
-    1, 5, 4,
-    4, 0, 1,
-    // right
-    6, 2, 3,
-    3, 7, 6,
-    // top
-    3, 0, 4,
-    4, 7, 3,
-    // bottom
-    2, 1, 5,
-    5, 6, 2
+    -1.0,   1.0,    1.0,    0.0, 0.0,    // Front-top-left
+    1.0,    1.0,    1.0,    1.0, 0.0,    // Front-top-right
+    -1.0,   -1.0,   1.0,    0.0, 1.0,    // Front-bottom-left
+    1.0,    -1.0,   1.0,    1.0, 1.0,    // Front-bottom-right
+    1.0,    -1.0,   -1.0,   1.0, 0.0,    // Back-bottom-right
+    1.0,    1.0,    1.0,    0.0, 1.0,    // Front-top-right
+    1.0,    1.0,    -1.0,   0.0, 0.0,    // Back-top-right
+    -1.0,   1.0,    1.0,    1.0, 1.0,    // Front-top-left
+    -1.0,   1.0,    -1.0,   1.0, 0.0,    // Back-top-left
+    -1.0,   -1.0,   1.0,    0.0, 1.0,    // Front-bottom-left
+    -1.0,   -1.0,   -1.0,   0.0, 0.0,    // Back-bottom-left
+    1.0,    -1.0,   -1.0,   1.0, 0.0,    // Back-bottom-right
+    -1.0,   1.0,    -1.0,   0.0, 1.0,    // Back-top-left
+    1.0,    1.0,    -1.0,   1.0, 1.0     // Back-top-right
 };
 
-static const vec3f vertices[] = 
-{
-    // position             // color
-    {-0.5,  0.5, 0.5},   {0.0, 0.0, 0.9 },   // 0
-    {-0.5, -0.5, 0.5},   {0.0, 0.0, 0.9 },   // 1
-    { 0.5, -0.5, 0.5},   {0.0, 0.0, 0.9 },   // 2
-    { 0.5,  0.5, 0.5},   {0.0, 0.0, 0.9 },   // 3
-        
-    {-0.5,  0.5, -0.5},  {0.8, 0.8, 0.0 },   // 4
-    {-0.5, -0.5, -0.5},  {0.8, 0.8, 0.0 },   // 5
-    { 0.5, -0.5, -0.5},  {0.8, 0.8, 0.0 },   // 6
-    { 0.5,  0.5, -0.5},  {0.8, 0.8, 0.0 },   // 7
-};
-
-static GLuint programID;
-static GLuint VAO, VBO, EBO;
+static Shader *shader;;
+static GLuint textureID;
+static GLuint VAO, VBO;
 
 Cube *cubeCreate()
 {
     Cube *cube = (Cube *)malloc(sizeof(Cube));
 
     cube->objectID = (GLuint)rand();
-    cube->programID = programID;
 
     mat4fIdentity(cube->translation);
     mat4fIdentity(cube->rotation);
@@ -60,25 +46,44 @@ Cube *cubeCreate()
 
 void cubeInit()
 {
-    programID = shaderCreateFromFile("resources/shaders/test_vs.glsl", "resources/shaders/test_fs.glsl");
+    shader = shaderCreateFromFile("resources/shaders/cube_vs.glsl", "resources/shaders/cube_fs.glsl");
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // Positions (first 3)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)0);
+
+    // Vertex positions
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *)0);
     glEnableVertexAttribArray(0);
-    // Colors (second 3)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
+    // Textures coordinates
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // Textures configuration
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load("resources/textures/container.jpg", &width, &height, &nrChannels, 3);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        printf("Can't load image!");
+    }
+
+    stbi_image_free(data);
 }
 
 void cubeSetPosition(Cube *self, vec3f position)
@@ -101,7 +106,7 @@ void cubeRotate(Cube *self, float x, float y, float z, float theta)
     mat4f tmp;
     mat4fRotation(tmp, x, y, z, theta);
     mat4fMultiply(self->rotation, tmp);
-}
+}   
 
 void cubeScale(Cube *self, float x, float y, float z)
 {
@@ -110,9 +115,16 @@ void cubeScale(Cube *self, float x, float y, float z)
     self->scale[10] += z;
 }
 
+void cubeUpdateProjection(mat4f view, mat4f perspective)
+{
+    shaderSetUniformMat4(shader, "view", view);
+    shaderSetUniformMat4(shader, "projection", perspective);
+}
+
 void cubeRender(Cube *self)
 {
-    glUseProgram(self->programID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    shaderActivate(shader);
     glBindVertexArray(VAO);
 
     mat4f tmp;
@@ -120,13 +132,10 @@ void cubeRender(Cube *self)
     mat4fMultiply(tmp, self->rotation);
     mat4fMultiply(tmp, self->scale);
 
-    GLint uniModel = glGetUniformLocation(self->programID, "model");
-    glUniformMatrix4fv(uniModel, 1, GL_TRUE, tmp);
-
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)0);
+    shaderSetUniformMat4(shader, "model", tmp);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
     glBindVertexArray(0);
 }
-
 
 void cubeDestroy(Cube *self)
 {
@@ -137,6 +146,6 @@ void cubePrint(Cube *self)
 {
     printf("\n[Cube object]\n");
     printf("objectID: %d\n", self->objectID);
-    printf("programiD: %d\n", self->programID);
+    printf("programiD: %d\n", shader->programID);
     printf("\n");
 }
