@@ -15,6 +15,7 @@
 #include "mathOpengl.h"
 #include "camera.h"
 #include "input.h"
+#include "model.h"
 #include "cube.h"
 
 
@@ -110,6 +111,15 @@ int main(void)
         cubeSetPosition(cubes[i], cubePositions[i]);
     }
 
+
+    Model *tmpModel = modelCreate();
+    Shader *shader = shaderCreateFromFile("resources/shaders/model_vs.glsl", "resources/shaders/model_fs.glsl");
+    modelSetShader(tmpModel, shader);
+    modelLoad(tmpModel, "resources/models/penguin.obj");
+
+
+
+
     while (glfwWindowShouldClose(window) == 0)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -121,6 +131,9 @@ int main(void)
         cameraUpdate(cameraHandler);
         cameraGetViewMatrix(cameraHandler, view);
         cameraGetPerspectiveMatrix(cameraHandler, perspective);
+
+        modelUpdateProjection(tmpModel, view, perspective);
+        modelRender(tmpModel);  
 
         // draw every cube
         cubeUpdateProjection(view, perspective);

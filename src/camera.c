@@ -11,7 +11,7 @@ CameraHandler *cameraCreate(float screenWidth, float screenHeight)
     cameraHandler->screenHeight = screenHeight;
 
     cameraHandler->cameraPosition[0] = 7.0;
-    cameraHandler->cameraPosition[1] = 3.0;
+    cameraHandler->cameraPosition[1] = 10.0;
     cameraHandler->cameraPosition[2] = 15.0;
 
     cameraHandler->cameraFront[0] = 0.0;
@@ -22,8 +22,8 @@ CameraHandler *cameraCreate(float screenWidth, float screenHeight)
     cameraHandler->cameraUp[1] = 1.0;
     cameraHandler->cameraUp[2] = 0.0;
 
-    cameraHandler->pitch = 0.0;
-    cameraHandler->yaw = -119.0;
+    cameraHandler->pitch = -20.0;
+    cameraHandler->yaw = -109.0;
     cameraHandler->fov = 45.0;
 
     cameraHandler->cameraSpeed = 0.01;

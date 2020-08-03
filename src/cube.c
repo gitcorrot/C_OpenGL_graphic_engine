@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define STB_IMAGE_IMPLEMENTATION
 #include "../include/stb_image.h"
 
 #include "cube.h"
@@ -57,11 +56,11 @@ void cubeInit()
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // Vertex positions
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *)0);
     // Textures coordinates
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
 
     // Textures configuration
     glGenTextures(1, &textureID);
@@ -72,7 +71,7 @@ void cubeInit()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("resources/textures/container.jpg", &width, &height, &nrChannels, 3);
+    unsigned char *data = stbi_load("resources/textures/cat2.jpg", &width, &height, &nrChannels, 3);
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);

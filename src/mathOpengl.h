@@ -9,10 +9,12 @@
 #define DEG2RAD 0.0174532
 #define RAD2DEG 57.295779
 
+typedef float vec2f[2];
 typedef float vec3f[3];
 typedef float vec4f[4];
 typedef float mat3f[3 * 3];
 typedef float mat4f[4 * 4];
+
 
 void vec3fAdd(vec3f this, vec3f v);
 void vec3fSubtract(vec3f this, vec3f v);
