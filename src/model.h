@@ -4,31 +4,27 @@
 #include "shader.h"
 #include "mathOpengl.h"
 
-typedef struct
-{
-    vec3f position;
-    vec2f texture;
-    vec3f normal;
+struct Model;
 
-} Vertex;
-
-typedef struct
+struct modelVTable // Interface (virtual funcions)
 {
+    void (*modelLoad)(struct Model *self, char *path);
+    void (*modelSetShader)(struct Model *self, Shader *shader);
+    void (*modelTranslate)(struct Model *self, float x, float y, float z);
+    void (*modelRotate)(struct Model *self, float x, float y, float z, float theta);
+    void (*modelScale)(struct Model *self, float x, float y, float z);
+    void (*modelRender)(struct Model *self);
+    void (*modelUpdateProjection)(struct Model *self, mat4f view, mat4f perspective);
+};
+
+typedef struct Model
+{
+    struct modelVTable *vtable;
+
     int modelID;
     int textureID;
 
-    Shader *shader; 
-
-    unsigned int VAO, VBO;
-    Vertex *vertices;   
-    int verticesCount;
-
-    mat4f translation;
-    mat4f rotation;
-    mat4f scale;
-
 } Model;
-
 
 Model *modelCreate();
 

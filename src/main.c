@@ -7,6 +7,9 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "../include/stb_image.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -15,9 +18,10 @@
 #include "mathOpengl.h"
 #include "camera.h"
 #include "input.h"
-#include "model.h"
-#include "cube.h"
+// #include "cube.h"
 
+#include "model.h"
+#include "defaultModel.h"
 
 const float screenWidth = 1200.0;
 const float screenHeight = 1000.0;
@@ -103,21 +107,21 @@ int main(void)
         { 4.5,  2.0, -0.0}
     };
 
-    cubeInit();
-    Cube *cubes[5];
-    for (int i = 0; i < 5; i++)
-    {
-        cubes[i] = cubeCreate();
-        cubeSetPosition(cubes[i], cubePositions[i]);
-    }
+    // cubeInit();
+    // Cube *cubes[5];
+    // for (int i = 0; i < 5; i++)
+    // {
+    //     cubes[i] = cubeCreate();
+    //     cubeSetPosition(cubes[i], cubePositions[i]);
+    // }
 
-    Model *tmpModel = modelCreate();
-    Shader *shader = shaderCreateFromFile(
-        "resources/shaders/model_vs.glsl",
-        "resources/shaders/model_fs.glsl");
-    modelSetShader(tmpModel, shader);
-    modelLoad(tmpModel, "resources/models/stone.obj");
-    modelScale(tmpModel, 2.0, 2.0, 2.0);
+    // Model *tmpModel = modelCreate();
+    // Shader *shader = shaderCreateFromFile(
+    //     "resources/shaders/model_vs.glsl",
+    //     "resources/shaders/model_fs.glsl");
+    // modelSetShader(tmpModel, shader);
+    // modelLoad(tmpModel, "resources/models/stone.obj");
+    // modelScale(tmpModel, 2.0, 2.0, 2.0);
 
     // Model *sunModel = modelCreate();
     // Shader *sunShader = shaderCreateFromFile(
@@ -125,6 +129,18 @@ int main(void)
     //     "resources/shaders/light_fs.glsl");
     // modelSetShader(tmpModel, shader);
     // modelLoad(tmpModel, "resources/models/stone.obj");
+
+    defaultModel *dm = defaultModelCreate();
+    Model *m = (Model *)dm;
+
+        // Model *tmpModel = modelCreate();
+    Shader *shader = shaderCreateFromFile(
+        "resources/shaders/model_vs.glsl",
+        "resources/shaders/model_fs.glsl");
+    modelSetShader(m, shader);
+    modelLoad(m, "resources/models/stone.obj");
+    // modelScale(tmpModel, 2.0, 2.0, 2.0);
+
 
     while (glfwWindowShouldClose(window) == 0)
     {
@@ -138,10 +154,9 @@ int main(void)
         cameraGetViewMatrix(cameraHandler, view);
         cameraGetPerspectiveMatrix(cameraHandler, perspective);
 
-        modelUpdateProjection(tmpModel, view, perspective);
-        modelRotate(tmpModel, 0, 1, 0 , 1*DEG2RAD);
-        // modelTranslate(tmpModel, 0.05, 0.0, 0.0);
-        modelRender(tmpModel);  
+        modelUpdateProjection(m, view, perspective);
+        modelRotate(m, 0, 1, 0 , 1*DEG2RAD);
+        modelRender(m);  
 
         // draw every cube
         // cubeUpdateProjection(view, perspective);
@@ -170,8 +185,8 @@ int main(void)
 
     printf("Exiting...\n");
 
-    for (int i = 0; i < 5; i++)
-        cubeDestroy(cubes[i]);
+    // for (int i = 0; i < 5; i++)
+        // cubeDestroy(cubes[i]);
 
     glfwDestroyWindow(window);
     glfwTerminate();
