@@ -16,10 +16,13 @@ typedef struct
 {
     int modelID;
     int textureID;
+
     Shader *shader; 
+
+    unsigned int VAO, VBO;
     Vertex *vertices;   
     int verticesCount;
-    unsigned int VAO, VBO;
+
     mat4f translation;
     mat4f rotation;
     mat4f scale;
@@ -31,11 +34,11 @@ Model *modelCreate();
 
 void modelLoad(Model *self, char *path);
 void modelSetShader(Model *self, Shader *shader);
+void modelTranslate(Model *self, float x, float y, float z);
+void modelRotate(Model *self, float x, float y, float z, float theta);
+void modelScale(Model *self, float x, float y, float z);
 void modelRender(Model *self);
 void modelUpdateProjection(Model *self, mat4f view, mat4f perspective);
 void modelPrint(Model *self);
-
-// TODO:
-// translate/rotate/scale funcitons
 
 #endif

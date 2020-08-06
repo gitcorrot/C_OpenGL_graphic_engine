@@ -115,8 +115,13 @@ void shaderSetUniformFloat(Shader *self, char *name, float value)
 void shaderSetUniformMat4(Shader *self, char *name, mat4f value)
 {
     GLint location = getUniformLocation(self->programID, name);
-    if (location != -1)
+    if (location != -1) 
+    {
         glUniformMatrix4fv(location, 1, GL_TRUE, value);
+    } else
+    {
+         LOG_D("Wrong uniform location!");
+    }
 }
 
 void shaderSetUniformVec3(Shader *self, char *name, vec3f value)

@@ -111,19 +111,25 @@ int main(void)
         cubeSetPosition(cubes[i], cubePositions[i]);
     }
 
-
     Model *tmpModel = modelCreate();
-    Shader *shader = shaderCreateFromFile("resources/shaders/model_vs.glsl", "resources/shaders/model_fs.glsl");
+    Shader *shader = shaderCreateFromFile(
+        "resources/shaders/model_vs.glsl",
+        "resources/shaders/model_fs.glsl");
     modelSetShader(tmpModel, shader);
-    modelLoad(tmpModel, "resources/models/penguin.obj");
+    modelLoad(tmpModel, "resources/models/stone.obj");
+    modelScale(tmpModel, 2.0, 2.0, 2.0);
 
-
-
+    // Model *sunModel = modelCreate();
+    // Shader *sunShader = shaderCreateFromFile(
+    //     "resources/shaders/light_vs.glsl",
+    //     "resources/shaders/light_fs.glsl");
+    // modelSetShader(tmpModel, shader);
+    // modelLoad(tmpModel, "resources/models/stone.obj");
 
     while (glfwWindowShouldClose(window) == 0)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(0.1, 0.1, 0.15, 1);
+        glClearColor(0.2, 0.2, 0.3, 1);
 
         inputUpdate(inputHandler, deltaTime);
 
@@ -133,20 +139,27 @@ int main(void)
         cameraGetPerspectiveMatrix(cameraHandler, perspective);
 
         modelUpdateProjection(tmpModel, view, perspective);
+        modelRotate(tmpModel, 0, 1, 0 , 1*DEG2RAD);
+        // modelTranslate(tmpModel, 0.05, 0.0, 0.0);
         modelRender(tmpModel);  
 
         // draw every cube
-        cubeUpdateProjection(view, perspective);
-        for (int i = 0; i < 5; i++) 
-        {
-            // cubeTranslate(cubes[i], 0, 0, 0.025);
-            cubeRotate(cubes[i], 0, 1, 0, 1*DEG2RAD);
-            // cubeScale(cubes[i], -0.001, -0.001, -0.001);
-            cubeRender(cubes[i]);
-        }
+        // cubeUpdateProjection(view, perspective);
+        // for (int i = 0; i < 5; i++) 
+        // {
+        //     // cubeTranslate(cubes[i], 0, 0, 0.025);
+        //     cubeRotate(cubes[i], 0, 1, 0, 1*DEG2RAD);
+        //     // cubeScale(cubes[i], -0.001, -0.001, -0.001);
+        //     cubeRender(cubes[i]);
+        // }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        GLenum err = glGetError();
+        if(err != GL_NO_ERROR) {
+            fprintf(stderr, "OpenGL error: %d", err);
+        }
 
         // Update delta time
         double tempTime = (float)glfwGetTime() * 1000.0;

@@ -136,16 +136,17 @@ void modelLoad(Model *self, char *patch)
     // Textures configuration
     glGenTextures(1, &self->textureID);
     glBindTexture(GL_TEXTURE_2D, self->textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("resources/textures/penguin.png", &width, &height, &nrChannels, 3);
+    unsigned char *data = stbi_load("resources/textures/stone.png",
+                                    &width, &height, &nrChannels, STBI_rgb_alpha);
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -161,17 +162,38 @@ void modelSetShader(Model *self, Shader *shader)
     self->shader = shader;
 }
 
+void modelTranslate(Model *self, float x, float y, float z)
+{
+        self->translation[3] += x;
+    self->translation[7] += y;
+    self->translation[11] += z;
+}
+
+void modelRotate(Model *self, float x, float y, float z, float theta) 
+{
+        // this way is ok, but you don't know the object rotation
+    mat4f tmp;
+    mat4fRotation(tmp, x, y, z, theta);
+    mat4fMultiply(self->rotation, tmp);
+}
+
+void modelScale(Model *self, float x, float y, float z) 
+{ 
+    self->scale[0] += x;
+    self->scale[5] += y;
+    self->scale[10] += z;
+}
+
 void modelRender(Model *self)
 {
+    // shaderActivate(self->shader);
     glBindTexture(GL_TEXTURE_2D, self->textureID);
-    shaderActivate(self->shader);
     glBindVertexArray(self->VAO);
 
     mat4f tmp;
     mat4fCopy(self->translation, tmp);
     mat4fMultiply(tmp, self->rotation);
     mat4fMultiply(tmp, self->scale);
-
     shaderSetUniformMat4(self->shader, "model", tmp);
     glDrawArrays(GL_TRIANGLES, 0, self->verticesCount);
     glBindVertexArray(0);
@@ -179,6 +201,7 @@ void modelRender(Model *self)
 
 void modelUpdateProjection(Model *self, mat4f view, mat4f perspective)
 {
+    shaderActivate(self->shader);
     shaderSetUniformMat4(self->shader, "view", view);
     shaderSetUniformMat4(self->shader, "projection", perspective);
 }
