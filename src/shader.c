@@ -5,6 +5,8 @@
 #include "shader.h"
 #include "utils.h"
 
+GLint getUniformLocation(GLuint programID, char *name);
+
 Shader *shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFilename)
 {
     FILE *f;
@@ -15,7 +17,7 @@ Shader *shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFil
     f = fopen(vertexShaderFilename, "r");
     if (f == NULL)
     {
-        LOG_D("Can't open '%s'", vertexShaderFilename);
+        LOG_E("Can't open '%s'", vertexShaderFilename);
         exit(EXIT_FAILURE);
     }
     fseek(f, 0, SEEK_END);
@@ -24,7 +26,7 @@ Shader *shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFil
     fseek(f, 0, SEEK_SET);
     if (fread(vertexShaderTextBuffer, 1, textLength, f) != textLength)
     {
-        LOG_D("Can't read from '%s'\n", vertexShaderFilename);
+        LOG_E("Can't read from '%s'\n", vertexShaderFilename);
     }
     vertexShaderTextBuffer[textLength] = '\0';
     const GLchar *vertexShaderText = vertexShaderTextBuffer;
@@ -34,7 +36,7 @@ Shader *shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFil
     f = fopen(fragmentShaderFilename, "r");
     if (f == NULL)
     {
-        LOG_D("Can't open '%s'\n", fragmentShaderFilename);
+        LOG_E("Can't open '%s'\n", fragmentShaderFilename);
         exit(EXIT_FAILURE);
     }
     fseek(f, 0, SEEK_END);
@@ -43,7 +45,7 @@ Shader *shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFil
     fseek(f, 0, SEEK_SET);
     if (fread(fragmentShaderTextBuffer, 1, textLength, f) != textLength)
     {
-        LOG_D("Can't read from '%s'\n", fragmentShaderFilename);
+        LOG_E("Can't read from '%s'\n", fragmentShaderFilename);
     }
     fragmentShaderTextBuffer[textLength] = '\0';
     const GLchar *fragmentShaderText = fragmentShaderTextBuffer;
@@ -60,7 +62,7 @@ Shader *shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFil
     if (!success)
     {
         glGetShaderInfoLog(VertexShaderID, 512, NULL, infoLogBuffer);
-        LOG_D("Vertex shader compilation failed:\n%s", infoLogBuffer);
+        LOG_E("Vertex shader compilation failed:\n%s", infoLogBuffer);
     };
 
     // Create fragment shader
@@ -71,7 +73,7 @@ Shader *shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFil
     if (!success)
     {
         glGetShaderInfoLog(FragmentShaderID, 512, NULL, infoLogBuffer);
-        LOG_D("Fragment shader compilation failed:\n%s", infoLogBuffer);
+        LOG_E("Fragment shader compilation failed:\n%s", infoLogBuffer);
     };
 
     // Attach and link shaders to program
@@ -83,7 +85,7 @@ Shader *shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFil
     if (!success)
     {
         glGetProgramInfoLog(p, 512, NULL, infoLogBuffer);
-        LOG_D("Shader progam linking failed:\n%s", infoLogBuffer);
+        LOG_E("Shader progam linking failed:\n%s", infoLogBuffer);
     }
 
     // Clean up
@@ -98,7 +100,6 @@ Shader *shaderCreateFromFile(char *vertexShaderFilename, char *fragmentShaderFil
 
     return shader;
 }   
-
 
 void shaderActivate(Shader *self)
 {
@@ -115,13 +116,8 @@ void shaderSetUniformFloat(Shader *self, char *name, float value)
 void shaderSetUniformMat4(Shader *self, char *name, mat4f value)
 {
     GLint location = getUniformLocation(self->programID, name);
-    if (location != -1) 
-    {
+    if (location != -1)
         glUniformMatrix4fv(location, 1, GL_TRUE, value);
-    } else
-    {
-         LOG_D("Wrong uniform location!");
-    }
 }
 
 void shaderSetUniformVec3(Shader *self, char *name, vec3f value)
@@ -136,13 +132,13 @@ void shaderDestroy(Shader *self)
     glDeleteProgram(self->programID);
 }
 
-
+/* Private functions */
 GLint getUniformLocation(GLuint programID, char *name)
 {
     GLint location = glGetUniformLocation(programID, name);
 
     if (location == -1)
-        LOG_D("Can't find uniform location of '%s'", name);
+        LOG_E("Can't find uniform location of '%s'", name);
 
     return location;
 }

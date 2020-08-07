@@ -6,6 +6,11 @@
 #include "defaultModel.h"
 #include "utils.h"
 
+int countElements(FILE *f, char *element);
+void getVertexPositions(FILE *f, vec3f positions[]);
+void getTextureCoordinates(FILE *f, vec2f textureCoordinates[]);
+void getNormals(FILE *f, vec3f normals[]);
+
 struct modelVTable defaultModelVTable =
 {
     &defaultModelLoad,
@@ -16,11 +21,6 @@ struct modelVTable defaultModelVTable =
     &defaultModelRender,
     &defaultModelUpdateProjection
 };
-
-int countElements(FILE *f, char *element);
-void getVertexPositions(FILE *f, vec3f positions[]);
-void getTextureCoordinates(FILE *f, vec2f textureCoordinates[]);
-void getNormals(FILE *f, vec3f normals[]);
 
 defaultModel *defaultModelCreate()
 {
@@ -61,7 +61,7 @@ void defaultModelLoad(defaultModel *self, char *patch)
     f = fopen(patch, "r");
     if (f == NULL)
     {
-        LOG_D("Can't open '%s'", patch);
+        LOG_E("Can't open '%s'", patch);
     }
 
     int vertexPositionCount = countElements(f, "v ");
@@ -96,7 +96,7 @@ void defaultModelLoad(defaultModel *self, char *patch)
 
             if (ret != 9)
             {
-                LOG_D("Error during model loading! Only %d/9 attributes loaded.", ret);
+                LOG_E("Error during model loading! Only %d/9 attributes loaded.", ret);
                 exit(EXIT_FAILURE);
             }
             else

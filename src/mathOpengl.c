@@ -17,7 +17,7 @@ void vec3fSubtract(vec3f this, vec3f v)
         this[i] -= v[i];
 }
 
-float vec3fDotProduct(vec3f this, vec3f v) // dot product
+float vec3fDotProduct(vec3f this, vec3f v)
 {
     float sum = 0.0;
 
@@ -211,6 +211,9 @@ void mat4fMultiplyVec4f(vec4f dest, mat4f this, vec4f v)
     }
 }
 
+/**
+ * sets dest as translation matrix 4x4
+ */
 void mat4fTranslate(mat4f dest, float x, float y, float z)
 {
     mat4fIdentity(dest);
@@ -219,6 +222,9 @@ void mat4fTranslate(mat4f dest, float x, float y, float z)
     dest[11] = z;
 }
 
+/**
+ * returns scale matrix 4x4
+ */
 void mat4fScale(mat4f dest, float x, float y, float z)
 {
     mat4fIdentity(dest);
@@ -227,6 +233,9 @@ void mat4fScale(mat4f dest, float x, float y, float z)
     dest[11] *= z;
 }
 
+/**
+ * sets dest as rotation matrix 4x4
+ */
 void mat4fRotation(mat4f dest, float x, float y, float z, float theta)
 {
     // TODO: tmp is not neccesary?
@@ -255,17 +264,18 @@ void mat4fRotation(mat4f dest, float x, float y, float z, float theta)
     mat4fCopy(tmp, dest);
 }
 
-// TODO:
+// TODO: mat4fRotationFromEuler
 // void mat4fRotationFromEuler(mat4f dest, float yaw, float pitch, float roll)
 // {
 //     mat4f yawMatrix, pitchMatrix, rollMatrix;
 //     mat4fIdentity(yawMatrix);
 //     mat4fIdentity(pitchMatrix);
 //     mat4fIdentity(rollMatrix);
-
-
 // }
 
+/**
+ * sets dest as perspective matrix 4x4 (fov in deegres)
+ */
 void mat4fPerspective(mat4f dest, float fov, float aspectRatio, float near, float far)
 {
     float d = 1 / tanf((fov*DEG2RAD)/2);
@@ -289,6 +299,9 @@ void mat4fPerspective(mat4f dest, float fov, float aspectRatio, float near, floa
     dest[15] = 0;
 }
 
+/**
+ * sets dest as lookAt matrix 4x4
+ */
 void mat4fLookAt(mat4f dest, vec3f cameraPosition, vec3f cameraTarget)
 {
     vec3f cameraDirection = {0.0, 0.0, 0.0};

@@ -6,7 +6,11 @@
 
 struct Model;
 
-struct modelVTable // Interface (virtual funcions)
+/**
+ * Interface (virtual funcions) implementation 
+ * using array of pointers to function 
+ */
+struct modelVTable 
 {
     void (*modelLoad)(struct Model *self, char *path);
     void (*modelSetShader)(struct Model *self, Shader *shader);
