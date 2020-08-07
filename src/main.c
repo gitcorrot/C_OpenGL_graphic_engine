@@ -17,10 +17,11 @@
 #include "input.h"
 
 #include "model.h"
-#include "model/defaultModel.h"
+#include "model/vtsModel.h"
+#include "model/vModel.h"
 
-const float screenWidth = 1200.0;
-const float screenHeight = 800.0;
+const float screenWidth = 800.0;
+const float screenHeight = 600.0;
 
 float lastMillisTime, deltaTime;
 
@@ -79,15 +80,29 @@ int main(void)
     lastMillisTime = glfwGetTime() * 1000.0;
     deltaTime = lastMillisTime;
 
-    defaultModel *dm = defaultModelCreate();
-    Model *m = (Model *)dm; // upcast - first field of 'defaultModel' is base class 'Model'
+    Model *models[2];
 
-    modelSetShader(m, shaderCreateFromFile(
+    vtsModel *mRock = vtsModelCreate();
+    Model *rockModel = (Model *)mRock; // upcast - first field of 'vtsModel' is base class 'Model'
+    models[0] = rockModel;
+
+    modelSetShader(rockModel, shaderCreateFromFile(
                           "resources/shaders/model_vs.glsl",
                           "resources/shaders/model_fs.glsl"));
 
-    modelLoad(m, "resources/models/stone.obj");
-    modelScale(m, 2.0, 2.0, 2.0);
+    modelLoad(rockModel, "resources/models/stone.obj");
+    modelScale(rockModel, 2.0, 2.0, 2.0);
+
+    vModel *mSun = vModelCreate();
+    Model *sunModel = (Model *)mSun;
+    models[1] = sunModel;
+
+    modelSetShader(sunModel, shaderCreateFromFile(
+                          "resources/shaders/light_vs.glsl",
+                          "resources/shaders/light_fs.glsl"));
+
+    modelLoad(sunModel, "resources/models/sun.obj");
+    modelTranslate(sunModel, 10.0, 10.0, 10.0);
 
     while (glfwWindowShouldClose(window) == 0)
     {
@@ -101,9 +116,14 @@ int main(void)
         cameraGetViewMatrix(cameraHandler, view);
         cameraGetPerspectiveMatrix(cameraHandler, perspective);
 
-        modelUpdateProjection(m, view, perspective);
-        modelRotate(m, 0, 1, 0 , 1*DEG2RAD);
-        modelRender(m);  
+          
+        for (int i = 0; i < sizeof(models)/sizeof(models[0]); i++) {
+            modelUpdateProjection(models[i], view, perspective);
+            modelRender(models[i]);  
+        }
+
+
+        modelRotate(rockModel, 0, 1, 0 , 1*DEG2RAD);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -121,6 +141,7 @@ int main(void)
     printf("Exiting...\n");
 
     // TODO: destroy every object
+    free(mRock);
     
     glfwDestroyWindow(window);
     glfwTerminate();

@@ -53,4 +53,5 @@ void modelUpdateProjection(Model *self, mat4f view, mat4f perspective)
 void modelPrint(Model *self)
 {
     printf("[Model ID: %d]\n\n", self->modelID);
+    self->vtable->modelPrint(self);
 }

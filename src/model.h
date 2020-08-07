@@ -19,6 +19,7 @@ struct modelVTable
     void (*modelScale)(struct Model *self, float x, float y, float z);
     void (*modelRender)(struct Model *self);
     void (*modelUpdateProjection)(struct Model *self, mat4f view, mat4f perspective);
+    void (*modelPrint)(struct Model *self);
 };
 
 typedef struct Model

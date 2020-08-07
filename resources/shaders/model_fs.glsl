@@ -11,7 +11,7 @@
 
     void main() 
     {
-        vec3 lightPosition = vec3(5.0, 5.0, 5.0);
+        vec3 lightPosition = vec3(10.0, 10.0, 10.0);
 
         vec3 nNormal = normalize(vs_normal);
         vec3 nLightDirection = normalize(lightPosition - worldPosition.xyz);

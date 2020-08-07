@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "../../include/stb_image.h"
-#include "defaultModel.h"
+#include "vtsModel.h"
 #include "utils.h"
 
 int countElements(FILE *f, char *element);
@@ -11,22 +11,23 @@ void getVertexPositions(FILE *f, vec3f positions[]);
 void getTextureCoordinates(FILE *f, vec2f textureCoordinates[]);
 void getNormals(FILE *f, vec3f normals[]);
 
-struct modelVTable defaultModelVTable =
+struct modelVTable vtsModelVTable =
 {
-    &defaultModelLoad,
-    &defaultModelSetShader,
-    &defaultModelTranslate,
-    &defaultModelRotate,
-    &defaultModelScale,
-    &defaultModelRender,
-    &defaultModelUpdateProjection
+    &vtsModelLoad,
+    &vtsModelSetShader,
+    &vtsModelTranslate,
+    &vtsModelRotate,
+    &vtsModelScale,
+    &vtsModelRender,
+    &vtsModelUpdateProjection,
+    &vtsModelPrint
 };
 
-defaultModel *defaultModelCreate()
+vtsModel *vtsModelCreate()
 {
-    defaultModel *model = (defaultModel *)malloc(sizeof(defaultModel));
+    vtsModel *model = (vtsModel *)malloc(sizeof(vtsModel));
     
-    model->super.vtable = &defaultModelVTable;
+    model->super.vtable = &vtsModelVTable;
     model->super.modelID = rand();
 
     mat4fIdentity(model->translation);
@@ -39,7 +40,7 @@ defaultModel *defaultModelCreate()
     return model;
 }
 
-void defaultModelLoad(defaultModel *self, char *patch)
+void vtsModelLoad(vtsModel *self, char *patch)
 {
     /*  ALGORITHM (without usage of EBO)
 
@@ -167,19 +168,19 @@ void defaultModelLoad(defaultModel *self, char *patch)
     stbi_image_free(data);
 }
 
-void defaultModelSetShader(defaultModel *self, Shader *shader)
+void vtsModelSetShader(vtsModel *self, Shader *shader)
 {
     self->shader = shader;
 }
 
-void defaultModelTranslate(defaultModel *self, float x, float y, float z)
+void vtsModelTranslate(vtsModel *self, float x, float y, float z)
 {
         self->translation[3] += x;
     self->translation[7] += y;
     self->translation[11] += z;
 }
 
-void defaultModelRotate(defaultModel *self, float x, float y, float z, float theta) 
+void vtsModelRotate(vtsModel *self, float x, float y, float z, float theta) 
 {
         // this way is ok, but you don't know the object rotation
     mat4f tmp;
@@ -187,14 +188,14 @@ void defaultModelRotate(defaultModel *self, float x, float y, float z, float the
     mat4fMultiply(self->rotation, tmp);
 }
 
-void defaultModelScale(defaultModel *self, float x, float y, float z) 
+void vtsModelScale(vtsModel *self, float x, float y, float z) 
 { 
     self->scale[0] += x;
     self->scale[5] += y;
     self->scale[10] += z;
 }
 
-void defaultModelRender(defaultModel *self)
+void vtsModelRender(vtsModel *self)
 {
     // shaderActivate(self->shader);
     glBindTexture(GL_TEXTURE_2D, self->textureID);
@@ -209,92 +210,14 @@ void defaultModelRender(defaultModel *self)
     glBindVertexArray(0);
 }
 
-void defaultModelUpdateProjection(defaultModel *self, mat4f view, mat4f perspective)
+void vtsModelUpdateProjection(vtsModel *self, mat4f view, mat4f perspective)
 {
     shaderActivate(self->shader);
     shaderSetUniformMat4(self->shader, "view", view);
     shaderSetUniformMat4(self->shader, "projection", perspective);
 }
 
-int countElements(FILE *f, char *element)
-{
-    int count = 0;
-    char buffer[255];
-
-    fseek(f, 0, SEEK_SET); // go to start of file
-
-    while (fgets(buffer, sizeof(buffer), f))
-    {
-        if (strstr(buffer, element) != NULL)
-        {
-            count++;
-        }
-    }
-
-    return count;
-}
-
-void getVertexPositions(FILE *f, vec3f vertexPositions[])
-{
-    char buffer[255];
-    int iter = 0;
-    char *element = "v ";
-    fseek(f, 0, SEEK_SET); // go to start of file
-
-    while (fgets(buffer, sizeof(buffer), f))
-    {
-        if (strstr(buffer, element) != NULL)
-        {
-            sscanf(buffer, "v %f %f %f\n",
-                   &vertexPositions[iter][0],
-                   &vertexPositions[iter][1],
-                   &vertexPositions[iter][2]);
-            iter++;
-        }
-    }
-}
-
-void getTextureCoordinates(FILE *f, vec2f textureCoordinates[])
-{
-    char buffer[255];
-    int iter = 0;
-    char *element = "vt ";
-
-    fseek(f, 0, SEEK_SET); // go to start of file
-
-    while (fgets(buffer, sizeof(buffer), f))
-    {
-        if (strstr(buffer, element) != NULL)
-        {
-            sscanf(buffer, "vt %f %f\n",
-                   &textureCoordinates[iter][0],
-                   &textureCoordinates[iter][1]);
-            iter++;
-        }
-    }
-}
-
-void getNormals(FILE *f, vec3f normals[])
-{
-    char buffer[255];
-    int iter = 0;
-
-    fseek(f, 0, SEEK_SET); // go to start of file
-
-    while (fgets(buffer, 255, f))
-    {
-        if (strstr(buffer, "vn ") != NULL)
-        {
-            sscanf(buffer, "vn %f %f %f\n",
-                   &normals[iter][0],
-                   &normals[iter][1],
-                   &normals[iter][2]);
-            iter++;
-        }
-    }
-}
-
-void defaultModelPrint(defaultModel *self)
+void vtsModelPrint(vtsModel *self)
 {
     // printf("[Model ID: %d]\n\n", self->modelID);
     for (int i = 0; i < self->verticesCount; i++)
