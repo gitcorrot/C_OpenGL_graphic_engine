@@ -17,7 +17,7 @@
 #include "input.h"
 
 #include "model.h"
-#include "model/vtsModel.h"
+#include "model/vtnModel.h"
 #include "model/vModel.h"
 
 const float screenWidth = 800.0;
@@ -82,8 +82,8 @@ int main(void)
 
     Model *models[2];
 
-    vtsModel *mRock = vtsModelCreate();
-    Model *rockModel = (Model *)mRock; // upcast - first field of 'vtsModel' is base class 'Model'
+    vtnModel *mRock = vtnModelCreate();
+    Model *rockModel = (Model *)mRock; // upcast - first field of 'vtnModel' is base class 'Model'
     models[0] = rockModel;
 
     modelSetShader(rockModel, shaderCreateFromFile(
@@ -116,13 +116,10 @@ int main(void)
         cameraGetViewMatrix(cameraHandler, view);
         cameraGetPerspectiveMatrix(cameraHandler, perspective);
 
-          
         for (int i = 0; i < sizeof(models)/sizeof(models[0]); i++) {
             modelUpdateProjection(models[i], view, perspective);
             modelRender(models[i]);  
         }
-
-
         modelRotate(rockModel, 0, 1, 0 , 1*DEG2RAD);
 
         glfwSwapBuffers(window);

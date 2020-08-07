@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "../../include/stb_image.h"
-#include "vtsModel.h"
+#include "vtnModel.h"
 #include "utils.h"
 
 int countElements(FILE *f, char *element);
@@ -11,23 +11,23 @@ void getVertexPositions(FILE *f, vec3f positions[]);
 void getTextureCoordinates(FILE *f, vec2f textureCoordinates[]);
 void getNormals(FILE *f, vec3f normals[]);
 
-struct modelVTable vtsModelVTable =
+struct modelVTable vtnModelVTable =
 {
-    &vtsModelLoad,
-    &vtsModelSetShader,
-    &vtsModelTranslate,
-    &vtsModelRotate,
-    &vtsModelScale,
-    &vtsModelRender,
-    &vtsModelUpdateProjection,
-    &vtsModelPrint
+    &vtnModelLoad,
+    &vtnModelSetShader,
+    &vtnModelTranslate,
+    &vtnModelRotate,
+    &vtnModelScale,
+    &vtnModelRender,
+    &vtnModelUpdateProjection,
+    &vtnModelPrint
 };
 
-vtsModel *vtsModelCreate()
+vtnModel *vtnModelCreate()
 {
-    vtsModel *model = (vtsModel *)malloc(sizeof(vtsModel));
+    vtnModel *model = (vtnModel *)malloc(sizeof(vtnModel));
     
-    model->super.vtable = &vtsModelVTable;
+    model->super.vtable = &vtnModelVTable;
     model->super.modelID = rand();
 
     mat4fIdentity(model->translation);
@@ -40,7 +40,7 @@ vtsModel *vtsModelCreate()
     return model;
 }
 
-void vtsModelLoad(vtsModel *self, char *patch)
+void vtnModelLoad(vtnModel *self, char *patch)
 {
     /*  ALGORITHM (without usage of EBO)
 
@@ -168,19 +168,19 @@ void vtsModelLoad(vtsModel *self, char *patch)
     stbi_image_free(data);
 }
 
-void vtsModelSetShader(vtsModel *self, Shader *shader)
+void vtnModelSetShader(vtnModel *self, Shader *shader)
 {
     self->shader = shader;
 }
 
-void vtsModelTranslate(vtsModel *self, float x, float y, float z)
+void vtnModelTranslate(vtnModel *self, float x, float y, float z)
 {
         self->translation[3] += x;
     self->translation[7] += y;
     self->translation[11] += z;
 }
 
-void vtsModelRotate(vtsModel *self, float x, float y, float z, float theta) 
+void vtnModelRotate(vtnModel *self, float x, float y, float z, float theta) 
 {
         // this way is ok, but you don't know the object rotation
     mat4f tmp;
@@ -188,14 +188,14 @@ void vtsModelRotate(vtsModel *self, float x, float y, float z, float theta)
     mat4fMultiply(self->rotation, tmp);
 }
 
-void vtsModelScale(vtsModel *self, float x, float y, float z) 
+void vtnModelScale(vtnModel *self, float x, float y, float z) 
 { 
     self->scale[0] += x;
     self->scale[5] += y;
     self->scale[10] += z;
 }
 
-void vtsModelRender(vtsModel *self)
+void vtnModelRender(vtnModel *self)
 {
     // shaderActivate(self->shader);
     glBindTexture(GL_TEXTURE_2D, self->textureID);
@@ -210,14 +210,14 @@ void vtsModelRender(vtsModel *self)
     glBindVertexArray(0);
 }
 
-void vtsModelUpdateProjection(vtsModel *self, mat4f view, mat4f perspective)
+void vtnModelUpdateProjection(vtnModel *self, mat4f view, mat4f perspective)
 {
     shaderActivate(self->shader);
     shaderSetUniformMat4(self->shader, "view", view);
     shaderSetUniformMat4(self->shader, "projection", perspective);
 }
 
-void vtsModelPrint(vtsModel *self)
+void vtnModelPrint(vtnModel *self)
 {
     // printf("[Model ID: %d]\n\n", self->modelID);
     for (int i = 0; i < self->verticesCount; i++)
