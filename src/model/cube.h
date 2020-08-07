@@ -1,12 +1,12 @@
 #ifndef _CUBE_H_
 #define _CUBE_H_
 
-#include "../include/GL/gl3w.h"
+#include "../../include/GL/gl3w.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#include "mathOpengl.h"
+#include "../mathOpengl.h"
 
 typedef struct Cube
 {

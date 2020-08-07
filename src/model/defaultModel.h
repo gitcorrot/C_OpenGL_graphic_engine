@@ -1,8 +1,8 @@
 #ifndef _DEFAULT_MODEL_H_
 #define _DEFAULT_MODEL_H_
 
-#include "model.h"
-#include "mathOpengl.h"
+#include "../model.h"
+#include "../mathOpengl.h"
 
 typedef struct
 {

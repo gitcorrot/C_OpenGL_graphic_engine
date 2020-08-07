@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/stb_image.h"
+#include "../../include/stb_image.h"
 #include "defaultModel.h"
 #include "utils.h"
 

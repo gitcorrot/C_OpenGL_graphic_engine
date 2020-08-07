@@ -18,10 +18,10 @@
 #include "mathOpengl.h"
 #include "camera.h"
 #include "input.h"
-// #include "cube.h"
+// #include "model/cube.h"
 
 #include "model.h"
-#include "defaultModel.h"
+#include "model/defaultModel.h"
 
 const float screenWidth = 1200.0;
 const float screenHeight = 1000.0;
@@ -131,7 +131,7 @@ int main(void)
     // modelLoad(tmpModel, "resources/models/stone.obj");
 
     defaultModel *dm = defaultModelCreate();
-    Model *m = (Model *)dm;
+    Model *m = (Model *)dm; // upcast - first field of 'defaultModel' is base class 'Model'
 
         // Model *tmpModel = modelCreate();
     Shader *shader = shaderCreateFromFile(

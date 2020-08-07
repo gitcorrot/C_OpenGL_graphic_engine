@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "../include/stb_image.h"
+// #define STB_IMAGE_STATIC
+// #include "../include/stb_image.h"
 
 #include "cube.h"
 #include "shader.h"
