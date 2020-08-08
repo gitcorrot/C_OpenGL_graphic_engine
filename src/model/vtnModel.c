@@ -20,22 +20,25 @@ struct modelVTable vtnModelVTable =
     &vtnModelScale,
     &vtnModelRender,
     &vtnModelUpdateProjection,
-    &vtnModelPrint
+    &vtnModelPrint,
+    &vtnModelDestroy
 };
 
-vtnModel *vtnModelCreate()
+Model *vtnModelCreate()
 {
-    vtnModel *model = (vtnModel *)malloc(sizeof(vtnModel));
+    vtnModel *vtmMdl = (vtnModel *)malloc(sizeof(vtnModel));
     
-    model->super.vtable = &vtnModelVTable;
-    model->super.modelID = rand();
+    vtmMdl->super.vtable = &vtnModelVTable;
+    vtmMdl->super.modelID = rand();
 
-    mat4fIdentity(model->translation);
-    mat4fIdentity(model->rotation);
-    mat4fIdentity(model->scale);
+    mat4fIdentity(vtmMdl->translation);
+    mat4fIdentity(vtmMdl->rotation);
+    mat4fIdentity(vtmMdl->scale);
 
-    glGenVertexArrays(1, &model->VAO);
-    glGenBuffers(1, &model->VBO);
+    glGenVertexArrays(1, &vtmMdl->VAO);
+    glGenBuffers(1, &vtmMdl->VBO);
+
+    Model *model = (Model *)vtmMdl; // upcast - first field of 'vtnModel' is base class 'Model'
 
     return model;
 }
@@ -237,4 +240,9 @@ void vtnModelPrint(vtnModel *self)
                self->vertices[i].normal[2]);
         printf("}\n");
     }
+}
+
+void vtnModelDestroy(vtnModel *self) 
+{
+    free(self);
 }

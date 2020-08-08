@@ -28,7 +28,7 @@ typedef struct
 
 } vtnModel;
 
-vtnModel *vtnModelCreate();
+Model *vtnModelCreate();
 
 void vtnModelLoad(vtnModel *self, char *path);
 void vtnModelSetShader(vtnModel *self, Shader *shader);
@@ -38,6 +38,7 @@ void vtnModelScale(vtnModel *self, float x, float y, float z);
 void vtnModelRender(vtnModel *self);
 void vtnModelUpdateProjection(vtnModel *self, mat4f view, mat4f perspective);
 void vtnModelPrint(vtnModel *self);
+void vtnModelDestroy(vtnModel *self);
 
 
 #endif

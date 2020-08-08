@@ -17,22 +17,25 @@ struct modelVTable vModelVTable =
     &vModelScale,
     &vModelRender,
     &vModelUpdateProjection,
-    &vModelPrint
+    &vModelPrint,
+    &vModelDestroy
 };
 
-vModel *vModelCreate()
+Model *vModelCreate()
 {
-    vModel *model = (vModel *)malloc(sizeof(vModel));
+    vModel *vMdl = (vModel *)malloc(sizeof(vModel));
     
-    model->super.vtable = &vModelVTable;
-    model->super.modelID = rand();
+    vMdl->super.vtable = &vModelVTable;
+    vMdl->super.modelID = rand();
 
-    mat4fIdentity(model->translation);
-    mat4fIdentity(model->rotation);
-    mat4fIdentity(model->scale);
+    mat4fIdentity(vMdl->translation);
+    mat4fIdentity(vMdl->rotation);
+    mat4fIdentity(vMdl->scale);
 
-    glGenVertexArrays(1, &model->VAO);
-    glGenBuffers(1, &model->VBO);
+    glGenVertexArrays(1, &vMdl->VAO);
+    glGenBuffers(1, &vMdl->VBO);
+
+    Model *model = (Model *)vMdl; // upcast - first field of 'vtnModel' is base class 'Model'
 
     return model;
 }
@@ -176,4 +179,9 @@ void vModelPrint(vModel *self)
                self->vertices[i].position[2]);
         printf("}\n");
     }
+}
+
+void vModelDestroy(vModel *self) 
+{
+    free(self);
 }

@@ -25,7 +25,7 @@ typedef struct
 
 } vModel;
 
-vModel *vModelCreate();
+Model *vModelCreate();
 
 void vModelLoad(vModel *self, char *path);
 void vModelSetShader(vModel *self, Shader *shader);
@@ -35,6 +35,7 @@ void vModelScale(vModel *self, float x, float y, float z);
 void vModelRender(vModel *self);
 void vModelUpdateProjection(vModel *self, mat4f view, mat4f perspective);
 void vModelPrint(vModel *self);
+void vModelDestroy(vModel *self);
 
 
 #endif

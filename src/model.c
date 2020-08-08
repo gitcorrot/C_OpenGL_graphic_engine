@@ -55,3 +55,8 @@ void modelPrint(Model *self)
     printf("[Model ID: %d]\n\n", self->modelID);
     self->vtable->modelPrint(self);
 }
+
+void modelDestroy(Model *self) 
+{
+    self->vtable->modelDestroy(self);
+}

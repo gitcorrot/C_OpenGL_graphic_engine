@@ -72,6 +72,7 @@ int main(void)
 
     glViewport(0, 0, screenWidth, screenHeight);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE); 
 
     CameraHandler *cameraHandler = cameraCreate(screenWidth, screenHeight);
     InputHandler *inputHandler = inputCreate(window, cameraHandler);
@@ -82,25 +83,20 @@ int main(void)
 
     Model *models[2];
 
-    vtnModel *mRock = vtnModelCreate();
-    Model *rockModel = (Model *)mRock; // upcast - first field of 'vtnModel' is base class 'Model'
+    Model *rockModel = vtnModelCreate();
     models[0] = rockModel;
-
     modelSetShader(rockModel, shaderCreateFromFile(
                           "resources/shaders/model_vs.glsl",
                           "resources/shaders/model_fs.glsl"));
-
     modelLoad(rockModel, "resources/models/stone.obj");
     modelScale(rockModel, 2.0, 2.0, 2.0);
 
-    vModel *mSun = vModelCreate();
-    Model *sunModel = (Model *)mSun;
-    models[1] = sunModel;
 
+    Model *sunModel = vModelCreate();
+    models[1] = sunModel;
     modelSetShader(sunModel, shaderCreateFromFile(
                           "resources/shaders/light_vs.glsl",
                           "resources/shaders/light_fs.glsl"));
-
     modelLoad(sunModel, "resources/models/sun.obj");
     modelTranslate(sunModel, 10.0, 10.0, 10.0);
 
@@ -137,8 +133,9 @@ int main(void)
 
     printf("Exiting...\n");
 
-    // TODO: destroy every object
-    free(mRock);
+    // Destroy every object
+    modelDestroy(rockModel);
+    modelDestroy(sunModel);
     
     glfwDestroyWindow(window);
     glfwTerminate();
