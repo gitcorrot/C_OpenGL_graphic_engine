@@ -1,16 +1,20 @@
 #include <stdlib.h>
-#include "input.h"
+#include <stdio.h>
 
-float lastX, lastY, lastScroll;
+#include "input.h"
+#include "consts.h"
+
+double lastX, lastY, lastScroll;
 float xOff, yOff, scrollOff;
 
-const static float mouseSensitivity = 0.1;
+const static float mouseSensitivity = 0.15;
 const static float mouseScrollSensitivity = 5.0;
 
 void mouseCallback(GLFWwindow *window, double xPos, double yPos);
 void scrollCallback(GLFWwindow *window, double xoffset, double yoffset);
+void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 
-InputHandler* inputCreate(GLFWwindow *window, CameraHandler *camera)
+InputHandler *inputCreate(GLFWwindow *window, CameraHandler *camera)
 {
     InputHandler *inputHandler = (InputHandler *)malloc(sizeof(InputHandler));
     // TODO: check exception
@@ -23,26 +27,41 @@ InputHandler* inputCreate(GLFWwindow *window, CameraHandler *camera)
 void inputInit(InputHandler *self)
 {
     glfwSetInputMode(self->window, GLFW_STICKY_KEYS, GL_TRUE);
-    glfwSetInputMode(self->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // glfwSetInputMode(self->window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     glfwSetCursorPosCallback(self->window, mouseCallback);
+    glfwSetMouseButtonCallback(self->window, mouseButtonCallback);
     glfwSetScrollCallback(self->window, scrollCallback);
+
+    GLFWcursor *cursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
+    glfwSetCursor(self->window, cursor);
 }
 
 void mouseCallback(GLFWwindow *window, double xPos, double yPos)
 {
     if (lastX == 0 && lastY == 0)
     {
-        lastX = (float)xPos;
-        lastY = (float)yPos;
+        lastX = xPos;
+        lastY = yPos;
         return;
     }
     else
     {
-        xOff = (float)xPos - lastX;
-        yOff = (float)yPos - lastY;
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+        {
+            xOff = (float)xPos - lastX;
+            yOff = (float)yPos - lastY;
 
-        lastX = (float)xPos;
-        lastY = (float)yPos;
+            lastX = xPos;
+            lastY = yPos;
+        }
+    }
+}
+
+void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+    {
+        glfwGetCursorPos(window, &lastX, &lastY);
     }
 }
 
@@ -54,8 +73,8 @@ void scrollCallback(GLFWwindow *window, double xoffset, double yoffset)
 void inputUpdate(InputHandler *self, float deltaTime)
 {
     // Mouse XY
-    float tempYaw = self->camera->yaw + xOff * mouseSensitivity;
-    float tempPitch = self->camera->pitch - yOff * mouseSensitivity;
+    float tempYaw = self->camera->yaw - xOff * mouseSensitivity;
+    float tempPitch = self->camera->pitch + yOff * mouseSensitivity;
     cameraSetYaw(self->camera, tempYaw);
     cameraSetPitch(self->camera, tempPitch);
     xOff = 0;
@@ -73,7 +92,7 @@ void inputUpdate(InputHandler *self, float deltaTime)
     }
     else
     {
-        const float cameraSpeed = self->camera->cameraSpeed * deltaTime;
+        const float cameraSpeed = CAMERA_SPEED * deltaTime;
         // W
         if (glfwGetKey(self->window, GLFW_KEY_W) == GLFW_PRESS)
         {
@@ -104,6 +123,20 @@ void inputUpdate(InputHandler *self, float deltaTime)
             vec3fCrossProduct(tmp, self->camera->cameraFront, self->camera->cameraUp); // right vector
             vec3fNormalize(tmp);
             vec3fMultiplyScalar(tmp, tmp, cameraSpeed);
+            vec3fAdd(self->camera->cameraPosition, tmp);
+        }
+        // Space
+        if (glfwGetKey(self->window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        {
+            vec3f tmp;
+            tmp[1] = 1.0 * cameraSpeed;
+            vec3fAdd(self->camera->cameraPosition, tmp);
+        }
+        // Shift
+        if (glfwGetKey(self->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        {
+            vec3f tmp;
+            tmp[1] = -1.0 * cameraSpeed;
             vec3fAdd(self->camera->cameraPosition, tmp);
         }
     }

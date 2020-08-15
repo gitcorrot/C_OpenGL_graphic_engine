@@ -12,7 +12,6 @@ typedef struct
     float pitch;
     float yaw;
     float fov;
-    float cameraSpeed;
 
 } CameraHandler;
 

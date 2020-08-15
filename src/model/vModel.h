@@ -32,8 +32,7 @@ void vModelSetShader(vModel *self, Shader *shader);
 void vModelTranslate(vModel *self, float x, float y, float z);
 void vModelRotate(vModel *self, float x, float y, float z, float theta);
 void vModelScale(vModel *self, float x, float y, float z);
-void vModelRender(vModel *self);
-void vModelUpdateProjection(vModel *self, mat4f view, mat4f perspective);
+void vModelRender(vModel *self, mat4f view, mat4f perspective, vec3f lightPosition);
 void vModelPrint(vModel *self);
 void vModelDestroy(vModel *self);
 

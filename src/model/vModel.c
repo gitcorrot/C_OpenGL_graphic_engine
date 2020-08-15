@@ -16,7 +16,6 @@ struct modelVTable vModelVTable =
     &vModelRotate,
     &vModelScale,
     &vModelRender,
-    &vModelUpdateProjection,
     &vModelPrint,
     &vModelDestroy
 };
@@ -145,9 +144,13 @@ void vModelScale(vModel *self, float x, float y, float z)
     self->scale[10] += z;
 }
 
-void vModelRender(vModel *self)
+void vModelRender(vModel *self, mat4f view, mat4f perspective, vec3f lightPosition)
 {
-    // shaderActivate(self->shader);
+    shaderActivate(self->shader);
+    shaderSetUniformMat4(self->shader, "view", view);
+    shaderSetUniformMat4(self->shader, "projection", perspective);
+    // shaderSetUniformVec3(self->shader, "lightPosition", lightPosition); // TODO: what if shader doesn't have lighting?
+
     glBindVertexArray(self->VAO);
 
     mat4f tmp;
@@ -155,15 +158,9 @@ void vModelRender(vModel *self)
     mat4fMultiply(tmp, self->rotation);
     mat4fMultiply(tmp, self->scale);
     shaderSetUniformMat4(self->shader, "model", tmp);
+
     glDrawArrays(GL_TRIANGLES, 0, self->verticesCount);
     glBindVertexArray(0);
-}
-
-void vModelUpdateProjection(vModel *self, mat4f view, mat4f perspective)
-{
-    shaderActivate(self->shader);
-    shaderSetUniformMat4(self->shader, "view", view);
-    shaderSetUniformMat4(self->shader, "projection", perspective);
 }
 
 void vModelPrint(vModel *self)

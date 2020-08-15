@@ -25,9 +25,11 @@
 
         float specularFactor = max(0.0, dot(reflectedLight, nToCamera));
         float damperFactor = pow(specularFactor, 16);
-        vec3 specular = damperFactor * lightColor * 0.75; 
+        // vec3 specular = damperFactor * lightColor * 0.75; 
 
-        vec3 light = ( ambient + diffuse+specular) * lightColor; 
+        vec3 light = ( ambient + diffuse ) * lightColor; 
         
+        // fs_color =  texture(Texture, vs_texturePosition);
         fs_color =  texture(Texture, vs_texturePosition) * vec4(light, 1.0);
+        // fs_color = vec4(1.0, 0, 0, 1.0);
     }

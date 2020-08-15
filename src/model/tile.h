@@ -1,0 +1,39 @@
+#ifndef _TILE_H_
+#define _TILE_H_
+
+#include "mathOpengl.h"
+#include "shader.h"
+#include "consts.h"
+
+typedef struct
+{
+    vec3f position;
+    vec2f texture;
+    vec3f normal;
+
+} TileVertex;
+
+typedef struct
+{
+    int tileID;
+    int textureID;
+    int positionX;
+    int positionY;
+
+    TileVertex *vertices;
+    int *indices;
+
+    int indicesCount;
+    int verticesCount;
+
+    unsigned int VAO, VBO, EBO;
+    Shader *shader;
+
+} Tile;
+
+Tile *tileCreate(int positionX, int positionY);
+
+void tileRender(Tile *self, mat4f view, mat4f perspective, vec3f lightPosition);
+void tilePrint(Tile *self);
+
+#endif

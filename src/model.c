@@ -40,14 +40,9 @@ void modelScale(Model *self, float x, float y, float z)
     self->vtable->modelScale(self, x, y, z);
 }
 
-void modelRender(Model *self)
+void modelRender(Model *self, mat4f view, mat4f perspective, vec3f lightPosition)
 {
-    self->vtable->modelRender(self);
-}
-
-void modelUpdateProjection(Model *self, mat4f view, mat4f perspective)
-{
-    self->vtable->modelUpdateProjection(self, view, perspective);
+    self->vtable->modelRender(self, view, perspective, lightPosition);
 }
 
 void modelPrint(Model *self)

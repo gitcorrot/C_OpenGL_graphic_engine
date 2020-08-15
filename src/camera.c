@@ -2,6 +2,7 @@
 #include <math.h>
 
 #include "camera.h"
+#include "consts.h"
 
 CameraHandler *cameraCreate(float screenWidth, float screenHeight)
 {
@@ -11,8 +12,8 @@ CameraHandler *cameraCreate(float screenWidth, float screenHeight)
     cameraHandler->screenHeight = screenHeight;
 
     cameraHandler->cameraPosition[0] = 0.0;
-    cameraHandler->cameraPosition[1] = 7.0;
-    cameraHandler->cameraPosition[2] = 30.0;
+    cameraHandler->cameraPosition[1] = 30.0;
+    cameraHandler->cameraPosition[2] = 0.0;
 
     cameraHandler->cameraFront[0] = 0.0;
     cameraHandler->cameraFront[1] = 0.0;
@@ -23,10 +24,8 @@ CameraHandler *cameraCreate(float screenWidth, float screenHeight)
     cameraHandler->cameraUp[2] = 0.0;
 
     cameraHandler->pitch = -10.0;
-    cameraHandler->yaw = -75.0;
+    cameraHandler->yaw = 0.0;
     cameraHandler->fov = 45.0;
-
-    cameraHandler->cameraSpeed = 0.01;
 
     return cameraHandler;
 }
@@ -55,7 +54,7 @@ void cameraGetViewMatrix(CameraHandler *self, mat4f dest)
 
 void cameraGetPerspectiveMatrix(CameraHandler *self, mat4f dest)
 {
-    mat4fPerspective(dest, self->fov, self->screenWidth / self->screenHeight, 0.1, 100.0);
+    mat4fPerspective(dest, self->fov, self->screenWidth / self->screenHeight, 0.1, 1000.0);
 }
 
 void cameraSetPitch(CameraHandler *self, float pitch)

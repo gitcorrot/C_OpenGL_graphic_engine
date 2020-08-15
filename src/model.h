@@ -17,8 +17,7 @@ struct modelVTable
     void (*modelTranslate)(struct Model *self, float x, float y, float z);
     void (*modelRotate)(struct Model *self, float x, float y, float z, float theta);
     void (*modelScale)(struct Model *self, float x, float y, float z);
-    void (*modelRender)(struct Model *self);
-    void (*modelUpdateProjection)(struct Model *self, mat4f view, mat4f perspective);
+    void (*modelRender)(struct Model *self, mat4f view, mat4f perspective, vec3f lightPosition);
     void (*modelPrint)(struct Model *self);
     void (*modelDestroy)(struct Model *self);
 };
@@ -39,8 +38,7 @@ void modelSetShader(Model *self, Shader *shader);
 void modelTranslate(Model *self, float x, float y, float z);
 void modelRotate(Model *self, float x, float y, float z, float theta);
 void modelScale(Model *self, float x, float y, float z);
-void modelRender(Model *self);
-void modelUpdateProjection(Model *self, mat4f view, mat4f perspective);
+void modelRender(Model *self, mat4f view, mat4f perspective, vec3f lightPosition);
 void modelPrint(Model *self);
 void modelDestroy(Model *self);
 

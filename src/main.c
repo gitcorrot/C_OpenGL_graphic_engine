@@ -11,20 +11,16 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "consts.h"
 #include "utils.h"
 #include "mathOpengl.h"
 #include "camera.h"
 #include "input.h"
+#include "terrain.h"
 
 #include "model.h"
 #include "model/vtnModel.h"
 #include "model/vModel.h"
-
-const float screenWidth = 800.0;
-const float screenHeight = 600.0;
-
-float lastMillisTime, deltaTime;
-
 
 int main(void)
 {
@@ -39,7 +35,7 @@ int main(void)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(screenWidth, screenHeight, "OpenGL test", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_NAME, NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -70,38 +66,60 @@ int main(void)
 
     printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-    glViewport(0, 0, screenWidth, screenHeight);
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE); 
 
-    CameraHandler *cameraHandler = cameraCreate(screenWidth, screenHeight);
+    CameraHandler *cameraHandler = cameraCreate(SCREEN_WIDTH, SCREEN_HEIGHT);
     InputHandler *inputHandler = inputCreate(window, cameraHandler);
     inputInit(inputHandler);
 
-    lastMillisTime = glfwGetTime() * 1000.0;
-    deltaTime = lastMillisTime;
+    float lastMillisTime = glfwGetTime() * 1000.0;
+    float deltaTime = lastMillisTime;
 
-    Model *models[2];
+    vec3f sunPosition = { 25.0, 30.0, 25.0 };
 
-    Model *rockModel = vtnModelCreate();
-    models[0] = rockModel;
-    modelSetShader(rockModel, shaderCreateFromFile(
-                          "resources/shaders/model_vs.glsl",
-                          "resources/shaders/model_fs.glsl"));
-    modelLoad(rockModel, "resources/models/stone.obj");
-    modelScale(rockModel, 2.0, 2.0, 2.0);
-
+    Model *models[1];
 
     Model *sunModel = vModelCreate();
-    models[1] = sunModel;
+    models[0] = sunModel;
     modelSetShader(sunModel, shaderCreateFromFile(
                           "resources/shaders/light_vs.glsl",
                           "resources/shaders/light_fs.glsl"));
     modelLoad(sunModel, "resources/models/sun.obj");
-    modelTranslate(sunModel, 10.0, 10.0, 10.0);
+    modelTranslate(sunModel, sunPosition[0], sunPosition[1], sunPosition[2]);
+
+
+    // Shader *rockShader = shaderCreateFromFile(
+    //                         "resources/shaders/model_vs.glsl",
+    //                         "resources/shaders/model_fs.glsl");
+    // for (int i = 1; i < sizeof(models)/sizeof(models[0]); i++) {
+    //     Model *rockModel = vtnModelCreate();
+    //     models[i] = rockModel;
+    //     modelSetShader(rockModel, rockShader);
+    //     modelLoad(rockModel, "resources/models/stone.obj");
+    //     modelTranslate(rockModel, rand()%15-5, rand()%15-5, rand()%15-5);
+    //     // modelTranslate(rockModel, 0, 15, -15);
+    //     modelRotate(rockModel, 1,0,0, rand()%180);
+    //     modelScale(rockModel, -(float)(rand()%5)/10.0, -(rand()%5)/10.0, -(rand()%5)/10.0);
+    // } 
+
+
+
+    Terrain *terrain = terrainCreateRandom();
+    // tilePrint(terrain->tiles);
+    
+
 
     while (glfwWindowShouldClose(window) == 0)
     {
+        // float sy = cosf(glfwGetTime()* 2);
+        // float sz = sinf(glfwGetTime()* 2);
+        // sunPosition[1] += sy;
+        // sunPosition[2] += sz;
+        // modelTranslate(sunModel, 0.0, sy, sz);
+
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.2, 0.2, 0.3, 1);
 
@@ -112,11 +130,12 @@ int main(void)
         cameraGetViewMatrix(cameraHandler, view);
         cameraGetPerspectiveMatrix(cameraHandler, perspective);
 
+
+        terrainRender(terrain, view, perspective, sunPosition);
+
         for (int i = 0; i < sizeof(models)/sizeof(models[0]); i++) {
-            modelUpdateProjection(models[i], view, perspective);
-            modelRender(models[i]);  
+            modelRender(models[i], view, perspective, sunPosition);  
         }
-        modelRotate(rockModel, 0, 1, 0 , 1*DEG2RAD);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -134,8 +153,8 @@ int main(void)
     printf("Exiting...\n");
 
     // Destroy every object
-    modelDestroy(rockModel);
-    modelDestroy(sunModel);
+    // modelDestroy(rockModel);
+    // modelDestroy(sunModel);
     
     glfwDestroyWindow(window);
     glfwTerminate();

@@ -19,7 +19,6 @@ struct modelVTable vtnModelVTable =
     &vtnModelRotate,
     &vtnModelScale,
     &vtnModelRender,
-    &vtnModelUpdateProjection,
     &vtnModelPrint,
     &vtnModelDestroy
 };
@@ -198,9 +197,13 @@ void vtnModelScale(vtnModel *self, float x, float y, float z)
     self->scale[10] += z;
 }
 
-void vtnModelRender(vtnModel *self)
+void vtnModelRender(vtnModel *self, mat4f view, mat4f perspective, vec3f lightPosition)
 {
-    // shaderActivate(self->shader);
+    shaderActivate(self->shader);
+    shaderSetUniformMat4(self->shader, "view", view);
+    shaderSetUniformMat4(self->shader, "projection", perspective);
+    shaderSetUniformVec3(self->shader, "lightPosition", lightPosition);
+    
     glBindTexture(GL_TEXTURE_2D, self->textureID);
     glBindVertexArray(self->VAO);
 
@@ -209,15 +212,9 @@ void vtnModelRender(vtnModel *self)
     mat4fMultiply(tmp, self->rotation);
     mat4fMultiply(tmp, self->scale);
     shaderSetUniformMat4(self->shader, "model", tmp);
+
     glDrawArrays(GL_TRIANGLES, 0, self->verticesCount);
     glBindVertexArray(0);
-}
-
-void vtnModelUpdateProjection(vtnModel *self, mat4f view, mat4f perspective)
-{
-    shaderActivate(self->shader);
-    shaderSetUniformMat4(self->shader, "view", view);
-    shaderSetUniformMat4(self->shader, "projection", perspective);
 }
 
 void vtnModelPrint(vtnModel *self)

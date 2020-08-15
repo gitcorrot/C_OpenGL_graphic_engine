@@ -15,12 +15,13 @@
     uniform vec3 lightPosition;
 
     void main() 
-    {        vec4 worldPosition = model * vec4(Position, 1.0); // 4x4 * 1x4 => 1x4
+    {        
+        vec4 worldPosition = model * vec4(Position, 1.0); // 4x4 * 1x4 => 1x4
 
         gl_Position = projection * view * worldPosition;
 
-        vs_texturePosition = vec2(TexturePosition.x, 1-TexturePosition.y);
-        vs_normal = mat3(transpose(inverse(model))) * Normal; // TODO: calculate normal matrix on CPU
+        vs_texturePosition = TexturePosition;
+        vs_normal = Normal; //mat3(transpose(inverse(model))) * Normal; // TODO: calculate normal matrix on CPU
         vs_toLight = lightPosition - worldPosition.xyz;
         vs_toCamera = (inverse(view) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
     }
