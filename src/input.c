@@ -98,14 +98,14 @@ void inputUpdate(InputHandler *self, float deltaTime)
         {
             vec3f tmp;
             vec3fMultiplyScalar(tmp, self->camera->cameraFront, cameraSpeed);
-            vec3fAdd(self->camera->cameraPosition, tmp);
+            vec3fAdd(self->camera->cameraPosition, self->camera->cameraPosition, tmp);
         }
         // S
         if (glfwGetKey(self->window, GLFW_KEY_S) == GLFW_PRESS)
         {
             vec3f tmp;
             vec3fMultiplyScalar(tmp, self->camera->cameraFront, cameraSpeed);
-            vec3fSubtract(self->camera->cameraPosition, tmp);
+            vec3fSubtract(self->camera->cameraPosition, self->camera->cameraPosition, tmp);
         }
         // A
         if (glfwGetKey(self->window, GLFW_KEY_A) == GLFW_PRESS)
@@ -114,7 +114,7 @@ void inputUpdate(InputHandler *self, float deltaTime)
             vec3fCrossProduct(tmp, self->camera->cameraFront, self->camera->cameraUp); // right vector
             vec3fNormalize(tmp);
             vec3fMultiplyScalar(tmp, tmp, cameraSpeed);
-            vec3fSubtract(self->camera->cameraPosition, tmp);
+            vec3fSubtract(self->camera->cameraPosition, self->camera->cameraPosition, tmp);
         }
         // D
         if (glfwGetKey(self->window, GLFW_KEY_D) == GLFW_PRESS)
@@ -123,21 +123,21 @@ void inputUpdate(InputHandler *self, float deltaTime)
             vec3fCrossProduct(tmp, self->camera->cameraFront, self->camera->cameraUp); // right vector
             vec3fNormalize(tmp);
             vec3fMultiplyScalar(tmp, tmp, cameraSpeed);
-            vec3fAdd(self->camera->cameraPosition, tmp);
+            vec3fAdd(self->camera->cameraPosition, self->camera->cameraPosition, tmp);
         }
         // Space
         if (glfwGetKey(self->window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
             vec3f tmp;
             tmp[1] = 1.0 * cameraSpeed;
-            vec3fAdd(self->camera->cameraPosition, tmp);
+            vec3fAdd(self->camera->cameraPosition, self->camera->cameraPosition, tmp);
         }
         // Shift
         if (glfwGetKey(self->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         {
             vec3f tmp;
             tmp[1] = -1.0 * cameraSpeed;
-            vec3fAdd(self->camera->cameraPosition, tmp);
+            vec3fAdd(self->camera->cameraPosition, self->camera->cameraPosition, tmp);
         }
     }
 }

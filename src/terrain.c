@@ -13,7 +13,7 @@ Terrain *terrainCreateRandom()
 
     // TODO: come up with idea where to decide about position of tiles
     terrain->tiles = tileCreate(0, 0);
-    terrain->tiles = tileCreate(0, 1);
+    // terrain->tiles = tileCreate(0, 1);
 
     return terrain;
 }
@@ -23,5 +23,3 @@ void terrainRender(Terrain *self, mat4f view, mat4f perspective, vec3f lightPosi
     // for each tile -> render
     tileRender(self->tiles, view, perspective, lightPosition);
 }
-
-

@@ -77,7 +77,7 @@ int main(void)
     float lastMillisTime = glfwGetTime() * 1000.0;
     float deltaTime = lastMillisTime;
 
-    vec3f sunPosition = { 25.0, 30.0, 25.0 };
+    vec3f sunPosition = { 30.0, 80.0, 30.0 };
 
     Model *models[1];
 
@@ -88,7 +88,7 @@ int main(void)
                           "resources/shaders/light_fs.glsl"));
     modelLoad(sunModel, "resources/models/sun.obj");
     modelTranslate(sunModel, sunPosition[0], sunPosition[1], sunPosition[2]);
-
+    modelScale(sunModel, 5.0, 5.0, 5.0);
 
     // Shader *rockShader = shaderCreateFromFile(
     //                         "resources/shaders/model_vs.glsl",
@@ -113,13 +113,6 @@ int main(void)
 
     while (glfwWindowShouldClose(window) == 0)
     {
-        // float sy = cosf(glfwGetTime()* 2);
-        // float sz = sinf(glfwGetTime()* 2);
-        // sunPosition[1] += sy;
-        // sunPosition[2] += sz;
-        // modelTranslate(sunModel, 0.0, sy, sz);
-
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.2, 0.2, 0.3, 1);
 
@@ -153,8 +146,9 @@ int main(void)
     printf("Exiting...\n");
 
     // Destroy every object
-    // modelDestroy(rockModel);
-    // modelDestroy(sunModel);
+        for (int i = 0; i < sizeof(models)/sizeof(models[0]); i++) {
+            modelDestroy(models[i]);  
+        }
     
     glfwDestroyWindow(window);
     glfwTerminate();

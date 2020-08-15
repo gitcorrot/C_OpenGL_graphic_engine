@@ -3,11 +3,10 @@
     layout (location = 0) in vec3 Position;
     layout (location = 1) in vec2 TexturePosition;
     layout (location = 2) in vec3 Normal;
+    layout (location = 3) in vec3 Color;
 
     out vec2 vs_texturePosition;
-    out vec3 vs_normal;
-    out vec3 vs_toLight;
-    out vec3 vs_toCamera;
+    out vec3 vs_color;
     
     uniform mat4 model;
     uniform mat4 view;
@@ -20,8 +19,15 @@
 
         gl_Position = projection * view * worldPosition;
 
+        vec3 nNormal = normalize(Normal);
+        vec3 nToLight = normalize(lightPosition - worldPosition.xyz);
+
+        vec3 lightColor = vec3(255.0/255.0, 194.0/255.0, 102.0/255.0);
+        float ambient = 0.2;
+        float diffuse = max(0.0, dot(nNormal, nToLight)); 
+        vec3 light = ( ambient + diffuse ) * lightColor; 
+
         vs_texturePosition = TexturePosition;
-        vs_normal = Normal; //mat3(transpose(inverse(model))) * Normal; // TODO: calculate normal matrix on CPU
-        vs_toLight = lightPosition - worldPosition.xyz;
-        vs_toCamera = (inverse(view) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
+        // vs_color = Color;
+        vs_color = Color * light;
     }

@@ -5,11 +5,13 @@
 #include "shader.h"
 #include "consts.h"
 
+// 3*4 + 2*4 + 3*4 + 3*4 => 44 bytes
 typedef struct
 {
     vec3f position;
     vec2f texture;
     vec3f normal;
+    vec3f color;
 
 } TileVertex;
 

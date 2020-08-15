@@ -11,9 +11,9 @@ CameraHandler *cameraCreate(float screenWidth, float screenHeight)
     cameraHandler->screenWidth = screenWidth;
     cameraHandler->screenHeight = screenHeight;
 
-    cameraHandler->cameraPosition[0] = 0.0;
-    cameraHandler->cameraPosition[1] = 30.0;
-    cameraHandler->cameraPosition[2] = 0.0;
+    cameraHandler->cameraPosition[0] = -30.0;
+    cameraHandler->cameraPosition[1] = 100.0;
+    cameraHandler->cameraPosition[2] = 50.0;
 
     cameraHandler->cameraFront[0] = 0.0;
     cameraHandler->cameraFront[1] = 0.0;
@@ -23,8 +23,8 @@ CameraHandler *cameraCreate(float screenWidth, float screenHeight)
     cameraHandler->cameraUp[1] = 1.0;
     cameraHandler->cameraUp[2] = 0.0;
 
-    cameraHandler->pitch = -10.0;
-    cameraHandler->yaw = 0.0;
+    cameraHandler->pitch = -55.0;
+    cameraHandler->yaw = -10.0;
     cameraHandler->fov = 45.0;
 
     return cameraHandler;
@@ -48,7 +48,7 @@ void cameraGetViewMatrix(CameraHandler *self, mat4f dest)
 {
     vec3f cameraTarget; // camera position + camera front
     vec3fCopy(self->cameraPosition, cameraTarget);
-    vec3fAdd(cameraTarget, self->cameraFront);
+    vec3fAdd(cameraTarget, cameraTarget, self->cameraFront);
     mat4fLookAt(dest, self->cameraPosition, cameraTarget);
 }
 

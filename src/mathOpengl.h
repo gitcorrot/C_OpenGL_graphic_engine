@@ -17,8 +17,8 @@ typedef float mat4f[4 * 4];
 
 
 /*      vec3f        */
-void vec3fAdd(vec3f this, vec3f v);
-void vec3fSubtract(vec3f this, vec3f v);
+void vec3fAdd(vec3f result, vec3f v1, vec3f v2);
+void vec3fSubtract(vec3f result, vec3f v1, vec3f v2);
 float vec3fDotProduct(vec3f this, vec3f v);
 void vec3fCrossProduct(vec3f result, vec3f v1, vec3f v2);
 void vec3fMultiplyScalar(vec3f result, vec3f m, float s);

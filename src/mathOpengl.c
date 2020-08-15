@@ -5,16 +5,16 @@
 #include "mathOpengl.h"
 
 /*      vec3f        */
-void vec3fAdd(vec3f this, vec3f v)
+void vec3fAdd(vec3f result, vec3f v1, vec3f v2)
 {
     for (int i = 0; i < 3; i++)
-        this[i] += v[i];
+        result[i] = v1[i] + v2[i];
 }
 
-void vec3fSubtract(vec3f this, vec3f v)
+void vec3fSubtract(vec3f result, vec3f v1, vec3f v2)
 {
     for (int i = 0; i < 3; i++)
-        this[i] -= v[i];
+        result[i] = v1[i] - v2[i];
 }
 
 float vec3fDotProduct(vec3f this, vec3f v)
@@ -306,7 +306,7 @@ void mat4fLookAt(mat4f dest, vec3f cameraPosition, vec3f cameraTarget)
 {
     vec3f cameraDirection = {0.0, 0.0, 0.0};
     vec3fCopy(cameraPosition, cameraDirection);
-    vec3fSubtract(cameraDirection, cameraTarget);
+    vec3fSubtract(cameraDirection, cameraDirection, cameraTarget);
     vec3fNormalize(cameraDirection);
 
     vec3f cameraRight = {0.0, 0.0, 0.0};
