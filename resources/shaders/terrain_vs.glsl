@@ -22,12 +22,11 @@
         vec3 nNormal = normalize(Normal);
         vec3 nToLight = normalize(lightPosition - worldPosition.xyz);
 
-        vec3 lightColor = vec3(255.0/255.0, 194.0/255.0, 102.0/255.0);
+        vec3 lightColor = vec3(1,1,1); // vec3(255.0/255.0, 194.0/255.0, 102.0/255.0);
         float ambient = 0.2;
         float diffuse = max(0.0, dot(nNormal, nToLight)); 
         vec3 light = ( ambient + diffuse ) * lightColor; 
 
         vs_texturePosition = TexturePosition;
-        // vs_color = Color;
         vs_color = Color * light;
     }

@@ -23,12 +23,9 @@ typedef struct
     int positionY;
 
     TileVertex *vertices;
-    int *indices;
-
-    int indicesCount;
     int verticesCount;
 
-    unsigned int VAO, VBO, EBO;
+    unsigned int VAO, VBO;
     Shader *shader;
 
 } Tile;

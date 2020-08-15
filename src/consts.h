@@ -12,7 +12,7 @@ const static float MOUSE_SENSITIITY = 0.03;
 
 // Terrrain
 const static float TERRAIN_MAX_HEIGHT = 100;
-const static unsigned int TILE_SIZE = 200;
-const static unsigned int TILE_MESH_SIZE = 25;
+const static unsigned int TILE_SIZE = 400;
+const static unsigned int TILE_MESH_SIZE = 50;
 
 #endif

@@ -6,31 +6,26 @@
 #include "utils.h"
 #include "perlin.h"
 
-int *tileGenerateIndices(int indicesSize);
 TileVertex *tileGenerateVertices(int verticesSize);
-void tileCalculateNormals(Tile *self);
-TileVertex *getTileOnPos(Tile *self, int x, int y);
+// TileVertex *getTileOnPos(Tile *self, int x, int y);
+void calculateNormal(vec3f result, TileVertex tv1, TileVertex tv2, TileVertex tv3);
+void applyColor(TileVertex *tv );
+void copyTileVertex(TileVertex from, TileVertex *to);
 
 Tile *tileCreate(int positionX, int positionY)
 {
     Tile *tile = (Tile *)malloc(sizeof(Tile));
 
     tile->tileID = rand();
-
-    tile->verticesCount = (TILE_MESH_SIZE + 1) * (TILE_MESH_SIZE + 1);
-    tile->indicesCount = (TILE_MESH_SIZE * TILE_MESH_SIZE) * 2 * 3;
-
-    tile->vertices = tileGenerateVertices(tile->verticesCount);
-    tile->indices = tileGenerateIndices(tile->indicesCount);
-    tileCalculateNormals(tile);
-
     tile->shader = shaderCreateFromFile(
         "resources/shaders/terrain_vs.glsl",
         "resources/shaders/terrain_fs.glsl");
 
+    tile->verticesCount = TILE_MESH_SIZE * TILE_MESH_SIZE * 2 * 3;
+    tile->vertices = tileGenerateVertices(tile->verticesCount);
+
     glGenVertexArrays(1, &tile->VAO);
     glGenBuffers(1, &tile->VBO);
-    glGenBuffers(1, &tile->EBO);
 
     glBindVertexArray(tile->VAO);
 
@@ -48,9 +43,6 @@ Tile *tileCreate(int positionX, int positionY)
     // Color
     glEnableVertexAttribArray(3);
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void *)(8 * sizeof(GLfloat)));
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tile->EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * tile->indicesCount, tile->indices, GL_STATIC_DRAW);
 
     // Texture configuration
     glGenTextures(1, &tile->textureID);
@@ -94,8 +86,8 @@ void tileRender(Tile *self, mat4f view, mat4f perspective, vec3f lightPosition)
     shaderSetUniformVec3(self->shader, "lightPosition", lightPosition);
 
     glBindVertexArray(self->VAO);
-    glDrawElements(GL_TRIANGLES, self->indicesCount, GL_UNSIGNED_INT, (void *)0);
-    // glDrawElements(GL_LINES, self->indicesCount, GL_UNSIGNED_INT, (void *)0);
+    glDrawArrays(GL_TRIANGLES, 0, self->verticesCount);
+    // glDrawArrays(GL_LINES, 0, self->verticesCount);
     glBindVertexArray(0);
 }
 
@@ -104,197 +96,136 @@ TileVertex *tileGenerateVertices(int verticesSize)
 {
     TileVertex *vertices = (TileVertex *)malloc(sizeof(TileVertex) * verticesSize);
 
+    TileVertex lt, rt, lb, rb;
+    int index = 0;
     int i, j;
     float height = 0.0;
 
-    for (i = 0; i < TILE_MESH_SIZE + 1; i++)
+    for (i = 0; i < TILE_MESH_SIZE; i++)
     {
-        for (j = 0; j < TILE_MESH_SIZE + 1; j++)
+        for (j = 0; j < TILE_MESH_SIZE; j++)
         {
             height = perlinGet2d(i, j, 0.25, 2);
 
-            TileVertex tmp;
-            tmp.position[0] = j * ((float)TILE_SIZE / TILE_MESH_SIZE);
-            tmp.position[1] = height * TERRAIN_MAX_HEIGHT;
-            tmp.position[2] = i * ((float)TILE_SIZE / TILE_MESH_SIZE);
+            lt.position[0] = j * ((float)TILE_SIZE / TILE_MESH_SIZE);
+            rt.position[0] = (j + 1) * ((float)TILE_SIZE / TILE_MESH_SIZE);
+            lb.position[0] = j * ((float)TILE_SIZE / TILE_MESH_SIZE);
+            rb.position[0] = (j + 1) * ((float)TILE_SIZE / TILE_MESH_SIZE);
 
-            tmp.texture[0] = (float)j; // textures repeat themselves
-            tmp.texture[1] = (float)i; // textures repeat themselves
+            lt.position[1] = perlinGet2d(i, j, 0.125, 2) * TERRAIN_MAX_HEIGHT;
+            rt.position[1] = perlinGet2d(i, j + 1, 0.125, 2) * TERRAIN_MAX_HEIGHT;
+            lb.position[1] = perlinGet2d(i + 1, j, 0.125, 2) * TERRAIN_MAX_HEIGHT;
+            rb.position[1] = perlinGet2d(i + 1, j + 1, 0.125, 2) * TERRAIN_MAX_HEIGHT;
 
-            // RGB interpolation from green to brown
-            // tmp.color[0] = (((92.0-102.0) * height) + 102.0) / 255.0;
-            // tmp.color[1] = (((92.0-255.0) * height) + 255.0) / 255.0;
-            // tmp.color[2] = (((61.0-102.0) * height) + 102.0) / 255.0;
-            if (height < 0.4)
-            {
-                tmp.color[0] = (102.0) / 255.0;
-                tmp.color[1] = (255.0) / 255.0;
-                tmp.color[2] = (102.0) / 255.0;
-            }
-            else if (height > 0.4 && height < 0.6)
-            {
-                tmp.color[0] = (97.0) / 255.0;
-                tmp.color[1] = (81.0) / 255.0;
-                tmp.color[2] = (61.0) / 255.0;
-            }
-            else
-            {
-                tmp.color[0] = (222.0) / 255.0;
-                tmp.color[1] = (222.0) / 255.0;
-                tmp.color[2] = (222.0) / 255.0;
-            }
+            lt.position[2] = i * ((float)TILE_SIZE / TILE_MESH_SIZE);
+            rt.position[2] = i * ((float)TILE_SIZE / TILE_MESH_SIZE);
+            lb.position[2] = (i + 1) * ((float)TILE_SIZE / TILE_MESH_SIZE);
+            rb.position[2] = (i + 1) * ((float)TILE_SIZE / TILE_MESH_SIZE);
 
-            vertices[j + i * (TILE_MESH_SIZE + 1)] = tmp;
+            lt.texture[0] = (float)j; // textures repeat themselves
+            rt.texture[0] = (float)j+1; // textures repeat themselves
+            lb.texture[0] = (float)j; // textures repeat themselves
+            rb.texture[0] = (float)j+1; // textures repeat themselves
+
+            lt.texture[1] = (float)i; // textures repeat themselves
+            rt.texture[1] = (float)i; // textures repeat themselves
+            lb.texture[1] = (float)i+1; // textures repeat themselves
+            rb.texture[1] = (float)i+1; // textures repeat themselves
+
+            vec3f n1, n2;
+            calculateNormal(n1, lt, lb, rb);
+            calculateNormal(n2, lt, rb, rt);
+
+            applyColor(&lt);
+            applyColor(&rt);
+            applyColor(&lb);
+            applyColor(&rb);
+
+            // Triangle 1
+            copyTileVertex(lt, &vertices[index++]);
+            vec3fCopy(n1, vertices[index-1].normal);
+            copyTileVertex(lb, &vertices[index++]);
+            vec3fCopy(n1, vertices[index-1].normal);
+            copyTileVertex(rb, &vertices[index++]);
+            vec3fCopy(n1, vertices[index-1].normal);
+            // Triangle 2
+            copyTileVertex(lt, &vertices[index++]);
+            vec3fCopy(n2, vertices[index-1].normal);
+            copyTileVertex(rb, &vertices[index++]);
+            vec3fCopy(n2, vertices[index-1].normal);
+            copyTileVertex(rt, &vertices[index++]);
+            vec3fCopy(n2, vertices[index-1].normal);
         }
     }
 
     return vertices;
 }
 
-int *tileGenerateIndices(int indicesSize)
+void copyTileVertex(TileVertex from, TileVertex *to)
 {
-    int *indices = (int *)malloc(sizeof(int) * indicesSize);
+    to->position[0] = from.position[0];
+    to->position[1] = from.position[1];
+    to->position[2] = from.position[2];
 
-    int i, j;
-    int index = 0;
+    to->texture[0] = from.texture[0];
+    to->texture[1] = from.texture[1];
+    
+    to->normal[0] = from.normal[0];
+    to->normal[1] = from.normal[1];
+    to->normal[2] = from.normal[2];
 
-    for (i = 0; i < TILE_MESH_SIZE; i++)
-    {
-        for (j = 0; j < TILE_MESH_SIZE; j++)
-        {
-            int tl = j + (i * (TILE_MESH_SIZE + 1));
-            int tr = tl + 1;
-            int bl = tr + TILE_MESH_SIZE;
-            int br = bl + 1;
-
-            // Winding in counter clock diration
-            // First triangle
-            indices[index++] = tl;
-            indices[index++] = bl;
-            indices[index++] = br;
-            // Second triangle
-            indices[index++] = tl;
-            indices[index++] = br;
-            indices[index++] = tr;
-        }
-    }
-
-    return indices;
+    to->color[0] = from.color[0];
+    to->color[1] = from.color[1];
+    to->color[2] = from.color[2];
 }
 
-void tileCalculateNormals(Tile *self)
+void applyColor(TileVertex *tv)
 {
-    int i, j;
+    vec3f color;
+    float height = tv->position[1] / TERRAIN_MAX_HEIGHT;
 
-    for (i = 0; i < TILE_MESH_SIZE + 1; i++)
+    // RGB interpolation from green to brown
+    // tmp.color[0] = (((92.0-102.0) * height) + 102.0) / 255.0;
+    // tmp.color[1] = (((92.0-255.0) * height) + 255.0) / 255.0;
+    // tmp.color[2] = (((61.0-102.0) * height) + 102.0) / 255.0;
+
+    if (height < 0.3)
     {
-        for (j = 0; j < TILE_MESH_SIZE + 1; j++)
-        {
-            vec3f pCenter, pLeft, pRight, pTop, pBottom;
-            vec3fCopy(getTileOnPos(self, j, i)->position, pCenter);
-            vec3fCopy(getTileOnPos(self, j-1, i)->position, pLeft); // TODO: free when obj is new allocated TileVector
-            vec3fCopy(getTileOnPos(self, j+1, i)->position, pRight);
-            vec3fCopy(getTileOnPos(self, j, i+1)->position, pTop);
-            vec3fCopy(getTileOnPos(self, j, i-1)->position, pBottom);
-
-            vec3f cl, cr, ct, cb;
-            // vec3fSubtract(cl, pCenter, pLeft);
-            // vec3fSubtract(cr, pCenter, pRight);
-            // vec3fSubtract(ct, pCenter, pTop);
-            // vec3fSubtract(cb, pCenter, pBottom);
-            vec3fSubtract(cl, pCenter, pLeft);
-            vec3fSubtract(cr, pRight, pCenter);
-            vec3fSubtract(ct, pCenter, pTop);
-            vec3fSubtract(cb, pBottom, pCenter);
-
-            vec3fNormalize(cl);
-            vec3fNormalize(cr);
-            vec3fNormalize(ct);
-            vec3fNormalize(cb);
-
-            vec3f n1, n2, n3, n4;
-            vec3fCrossProduct(n1, cl, ct);
-            vec3fCrossProduct(n2, ct, cr);
-            vec3fCrossProduct(n3, cr, cb);
-            vec3fCrossProduct(n4, cb, cl);
-
-            // vec3fPrint(n1);
-            // vec3fPrint(n2);
-            // vec3fPrint(n3);
-            // vec3fPrint(n4);
-
-            vec3f normal;
-            vec3fAdd(normal, normal, n1);
-            // vec3fAdd(normal, normal, n2);
-            vec3fAdd(normal, normal, n3);
-            // vec3fAdd(normal, normal, n4);
-
-            vec3fNormalize(normal);
-
-            // printf("Normal: %f, %f, %f\n\n", normal[0], normal[1], normal[2]);
-
-            // if(normal[1] < 0) normal[1] = -normal[1];
-
-            self->vertices[i * (TILE_MESH_SIZE + 1) + j].normal[0] = normal[0];
-            self->vertices[i * (TILE_MESH_SIZE + 1) + j].normal[1] = normal[1];
-            self->vertices[i * (TILE_MESH_SIZE + 1) + j].normal[2] = normal[2];
-        }
+        color[0] = (102.0) / 255.0;
+        color[1] = (255.0) / 255.0;
+        color[2] = (102.0) / 255.0;
     }
-
-    // for (i = 0; i < self->indicesCount; i += 3)
-    // {
-    //     vec3f lt, rt, lb, rb;
-    //     vec3fCopy(self->vertices[self->indices[i]].position, lt);
-    //     vec3fCopy(self->vertices[self->indices[i + 1]].position, rt);
-    //     vec3fCopy(self->vertices[self->indices[i + 2]].position, rb);
-
-    //     // printf("%d\n", self->indices[i]);
-    //     // printf("%d\n", self->indices[i+1]);
-    //     // printf("%d\n", self->indices[i+2]);
-    //     // printf("%d\n\n", self->indices[i+5]);
-
-    //     vec3f v_lt_rt, v_lt_rb, v_lt_lb;
-    //     vec3fSubtract(v_lt_rt, rt, lt);
-    //     vec3fSubtract(v_lt_rb, rb, lt);
-    //     vec3fSubtract(v_lt_lb, lb, lt);
-
-    //     vec3fNormalize(v_lt_rt);
-    //     vec3fNormalize(v_lt_rb);
-    //     vec3fNormalize(v_lt_lb);
-
-    //     vec3f n1, n2;
-    //     vec3fCrossProduct(n1, v_lt_rb, v_lt_rt);
-    //     vec3fCrossProduct(n2, v_lt_rb, v_lt_lb);
-
-    //     vec3fNormalize(n1);
-    //     vec3fNormalize(n2);
-
-    //     //  printf("n1: %f, %f, %f\n", n1[0], n1[1], n1[2]);
-    //     //  printf("n2: %f, %f, %f\n\n", n2[0], n2[1], n2[2]);
-
-    //     self->vertices[self->indices[i]].normal[0] = (n2[0]);
-    //     self->vertices[self->indices[i]].normal[1] = (n2[1]);
-    //     self->vertices[self->indices[i]].normal[2] = (n2[2]);
-    //     // self->vertices[self->indices[i]].normal[0] = (n1[0] + n2[0]);
-    //     // self->vertices[self->indices[i]].normal[1] = (n1[1] + n2[1]);
-    //     // self->vertices[self->indices[i]].normal[2] = (n1[2] + n2[2]);
-    // }
-}
-
-TileVertex *getTileOnPos(Tile *self, int x, int y)
-{
-    if (x > TILE_MESH_SIZE || y > TILE_MESH_SIZE || x < 0 || y < 0)
+    else if (height > 0.3 && height < 0.6)
     {
-        // LOG_E("Position given in argument is larger that tile mesh size or less than 0!\n");
-
-        TileVertex *tmp = (TileVertex *)malloc(sizeof(TileVertex));
-        return tmp;
-        // return NULL;
+        color[0] = (97.0) / 255.0;
+        color[1] = (81.0) / 255.0;
+        color[2] = (61.0) / 255.0;
     }
     else
     {
-        return &self->vertices[x + y * (TILE_MESH_SIZE + 1)];
+        color[0] = (222.0) / 255.0;
+        color[1] = (222.0) / 255.0;
+        color[2] = (222.0) / 255.0;
     }
+
+    tv->color[0] = color[0];
+    tv->color[1] = color[1];
+    tv->color[2] = color[2];
+}
+
+void calculateNormal(vec3f result, TileVertex tv1, TileVertex tv2, TileVertex tv3)
+{
+    vec3f v1, v2;
+    vec3fSubtract(v1, tv2.position, tv1.position);
+    vec3fSubtract(v2, tv3.position, tv1.position);
+
+    vec3f n;
+    vec3fCrossProduct(n, v1, v2);
+    vec3fNormalize(n);
+
+    result[0] = n[0];
+    result[1] = n[1];
+    result[2] = n[2];
 }
 
 void tilePrint(Tile *self)
@@ -311,13 +242,5 @@ void tilePrint(Tile *self)
                self->vertices[i].position[2],
                self->vertices[i].texture[0],
                self->vertices[i].texture[1]);
-    }
-
-    for (i = 0; i < self->indicesCount; i += 3)
-    {
-        printf("Triangle %d: [%d, %d, %d]\n", i / 3,
-               self->indices[i],
-               self->indices[i + 1],
-               self->indices[i + 2]);
     }
 }
