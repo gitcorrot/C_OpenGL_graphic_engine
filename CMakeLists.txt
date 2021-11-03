@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-project(opengl_test VERSION 0.1.0)
+project(C_OpenGL_graphic_engine VERSION 0.1.0)
 
 # Add source files
 file(GLOB_RECURSE SOURCE_FILES 
@@ -14,7 +14,8 @@ add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 
 find_package( Threads REQUIRED )
 
-set( _glfw3_HEADER_SEARCH_DIRS "/usr/local/include")
+# GLFW
+set( _glfw3_HEADER_SEARCH_DIRS "/usr/include/GLFW" "/usr/local/include/GLFW")
 find_package( GLFW3 NAMES glfw3 glfw REQUIRED )
 
 
@@ -24,12 +25,10 @@ include_directories(
 	"${CMAKE_SOURCE_DIR}/include")
 
 # Put all libraries into a variable
-set(LIBS glfw3 rt m dl X11 Xau Xdmcp xcb ${CMAKE_THREAD_LIBS_INIT})
+set(LIBS glfw rt m dl X11 Xau Xdmcp xcb ${CMAKE_THREAD_LIBS_INIT})
 
 # Define the link libraries
 target_link_libraries(${PROJECT_NAME} ${LIBS})
-
-
 
 set (source "${CMAKE_SOURCE_DIR}/resources")
 set (destination "${CMAKE_CURRENT_BINARY_DIR}/resources")

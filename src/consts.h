@@ -2,7 +2,7 @@
 #define _CONSTS_H_
 
 // Window
-const static char WINDOW_NAME[] = "OpenGL test";
+const static char WINDOW_NAME[] = "C OpenGL graphic engine";
 const static float SCREEN_WIDTH = 1000.0;
 const static float SCREEN_HEIGHT = 800.0;
 

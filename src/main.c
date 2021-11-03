@@ -68,7 +68,7 @@ int main(void)
 
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE); 
+    glEnable(GL_CULL_FACE);
 
     CameraHandler *cameraHandler = cameraCreate(SCREEN_WIDTH, SCREEN_HEIGHT);
     InputHandler *inputHandler = inputCreate(window, cameraHandler);
@@ -77,40 +77,33 @@ int main(void)
     float lastMillisTime = glfwGetTime() * 1000.0;
     float deltaTime = lastMillisTime;
 
-    vec3f sunPosition = { 30.0, 80.0, 30.0 };
+    // Model *models[1];
 
-    Model *models[1];
+    vec3f sunPosition = {200.0, 200.0, 200.0};
+    // Model *sunModel = vModelCreate();
+    // models[0] = sunModel;
+    // Shader *sunShader = shaderCreateFromFile("resources/shaders/light_vs.glsl", "resources/shaders/light_fs.glsl");
+    // modelSetShader(sunModel, sunShader);
+    // modelLoad(sunModel, "resources/models/sun.obj");
+    // modelTranslate(sunModel, sunPosition[0], sunPosition[1], sunPosition[2]);
+    // modelScale(sunModel, 15.0, 15.0, 15.0);
 
-    Model *sunModel = vModelCreate();
-    models[0] = sunModel;
-    modelSetShader(sunModel, shaderCreateFromFile(
-                          "resources/shaders/light_vs.glsl",
-                          "resources/shaders/light_fs.glsl"));
-    modelLoad(sunModel, "resources/models/sun.obj");
-    modelTranslate(sunModel, sunPosition[0], sunPosition[1], sunPosition[2]);
-    modelScale(sunModel, 5.0, 5.0, 5.0);
-
-    // Shader *rockShader = shaderCreateFromFile(
-    //                         "resources/shaders/model_vs.glsl",
-    //                         "resources/shaders/model_fs.glsl");
-    // for (int i = 1; i < sizeof(models)/sizeof(models[0]); i++) {
+    // Shader *rockShader = shaderCreateFromFile("resources/shaders/model_vs.glsl", "resources/shaders/model_fs.glsl");
+    // for (int i = 1; i < sizeof(models) / sizeof(models[0]); i++)
+    // {
     //     Model *rockModel = vtnModelCreate();
     //     models[i] = rockModel;
     //     modelSetShader(rockModel, rockShader);
     //     modelLoad(rockModel, "resources/models/stone.obj");
-    //     modelTranslate(rockModel, rand()%15-5, rand()%15-5, rand()%15-5);
-    //     // modelTranslate(rockModel, 0, 15, -15);
-    //     modelRotate(rockModel, 1,0,0, rand()%180);
-    //     modelScale(rockModel, -(float)(rand()%5)/10.0, -(rand()%5)/10.0, -(rand()%5)/10.0);
-    // } 
-
-
+    //     modelTranslate(rockModel, rand() % TILE_SIZE, 100.0, rand() % TILE_SIZE);
+    //     modelRotate(rockModel, 0, 1, 0, rand() % 180);
+    //     modelScale(rockModel, 5.0, 5.0, 5.0);
+    // }
 
     Terrain *terrain = terrainCreateRandom();
     // tilePrint(terrain->tiles);
-    
 
-
+    // Engine main loop
     while (glfwWindowShouldClose(window) == 0)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -118,23 +111,29 @@ int main(void)
 
         inputUpdate(inputHandler, deltaTime);
 
+        // Move the sun a bit
+        // sunPosition[0] += 0.275;
+        // sunPosition[2] += 0.275;
+        // modelTranslate(sunModel, 0.5, 0.0, 0.5);
+
         mat4f view, perspective;
         cameraUpdate(cameraHandler);
         cameraGetViewMatrix(cameraHandler, view);
         cameraGetPerspectiveMatrix(cameraHandler, perspective);
 
-
         terrainRender(terrain, view, perspective, sunPosition);
 
-        for (int i = 0; i < sizeof(models)/sizeof(models[0]); i++) {
-            modelRender(models[i], view, perspective, sunPosition);  
-        }
+        // for (int i = 0; i < sizeof(models) / sizeof(models[0]); i++)
+        // {
+        //     modelRender(models[i], view, perspective, sunPosition);
+        // }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
 
         GLenum err = glGetError();
-        if(err != GL_NO_ERROR) {
+        if (err != GL_NO_ERROR)
+        {
             fprintf(stderr, "OpenGL error: %d", err);
         }
 
@@ -146,10 +145,11 @@ int main(void)
     printf("Exiting...\n");
 
     // Destroy every object
-        for (int i = 0; i < sizeof(models)/sizeof(models[0]); i++) {
-            modelDestroy(models[i]);  
-        }
-    
+    // for (int i = 0; i < sizeof(models) / sizeof(models[0]); i++)
+    // {
+    //     modelDestroy(models[i]);
+    // }
+
     glfwDestroyWindow(window);
     glfwTerminate();
 
